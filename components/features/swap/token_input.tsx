@@ -6,13 +6,21 @@ import { ChevronDown } from "lucide-react";
 import Image from "next/image";
 import { useAccount, useBalance } from "wagmi";
 
+export interface Chain {
+  id: number;
+  name: string;
+  shortName: string;
+  logo?: string;
+}
+
 export interface Token {
   symbol: string;
   name: string;
   address: string;
   decimals: number;
   logoURI?: string;
-  chainId?: number;
+  chainId: number;
+  chain: Chain;
   coingeckoId?: string;
 }
 
@@ -41,7 +49,9 @@ export function TokenInput({
   const { data: tokenBalance } = useBalance({
     address,
     token: selectedToken?.address as `0x${string}` | undefined,
-    enabled: !!selectedToken && !!address,
+    query: {
+      enabled: !!selectedToken && !!address,
+    },
   });
   const displayBalance = tokenBalance ? parseFloat(tokenBalance.formatted).toFixed(4) : "0";
 
@@ -53,7 +63,7 @@ export function TokenInput({
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-500">Balance: {displayBalance}</span>
             {label === "From" && (
-              <button className="text-xs text-blue-500 hover:text-blue-400 font-medium">MAX</button>
+              <button className="text-xs text-violet-400 hover:text-violet-300 font-medium">MAX</button>
             )}
           </div>
         )}
@@ -95,14 +105,16 @@ export function TokenInput({
                 )}
               </div>
               <div className="text-left">
-                <div className="font-semibold text-white">{selectedToken.symbol}</div>
-                <div className="text-xs text-gray-500">{selectedToken.name}</div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-white">{selectedToken.symbol}</span>
+                  <ChevronDown className="h-3 w-3 text-gray-400" />
+                </div>
+                <div className="text-xs text-gray-500">on {selectedToken.chain.name}</div>
               </div>
             </>
           ) : (
             <span className="font-medium text-white">Select token</span>
           )}
-          <ChevronDown className="h-4 w-4 text-gray-400" />
         </Button>
       </div>
     </div>
