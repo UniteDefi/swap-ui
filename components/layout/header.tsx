@@ -30,7 +30,7 @@ export function Header() {
             <Button
               onClick={() => open()}
               variant="default"
-              className={`min-w-[140px] ${isConnected ? "bg-gray-800 hover:bg-gray-700" : "bg-blue-600 hover:bg-blue-700"} rounded-xl`}
+              className={`min-w-[140px] ${isConnected ? "bg-gray-800 hover:bg-gray-700" : "bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"} rounded-xl`}
             >
               {isConnected && address
                 ? `${address.slice(0, 6)}...${address.slice(-4)}`
