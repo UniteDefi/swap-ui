@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import Image from "next/image";
 import { Token } from "./token_input";
+import { POPULAR_TOKENS, TOKENS_BY_SYMBOL } from "@/lib/constants/tokens";
 
 
 interface TokenSelectorDialogProps {
@@ -19,72 +20,8 @@ interface TokenSelectorDialogProps {
   onSelectToken: (token: Token) => void;
 }
 
-const POPULAR_TOKENS: Token[] = [
-  {
-    symbol: "ETH",
-    name: "Ethereum",
-    address: "0x0000000000000000000000000000000000000000",
-    decimals: 18,
-    coingeckoId: "ethereum",
-    logoURI: "https://assets.coingecko.com/coins/images/279/small/ethereum.png",
-  },
-  {
-    symbol: "USDC",
-    name: "USD Coin",
-    address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-    decimals: 6,
-    coingeckoId: "usd-coin",
-    logoURI: "https://assets.coingecko.com/coins/images/6319/small/usdc.png",
-  },
-  {
-    symbol: "USDT",
-    name: "Tether USD",
-    address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-    decimals: 6,
-    coingeckoId: "tether",
-    logoURI: "https://assets.coingecko.com/coins/images/325/small/Tether.png",
-  },
-  {
-    symbol: "DAI",
-    name: "Dai Stablecoin",
-    address: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-    decimals: 18,
-    coingeckoId: "dai",
-    logoURI: "https://assets.coingecko.com/coins/images/9956/small/Badge_Dai.png",
-  },
-  {
-    symbol: "WBTC",
-    name: "Wrapped Bitcoin",
-    address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-    decimals: 8,
-    coingeckoId: "wrapped-bitcoin",
-    logoURI: "https://assets.coingecko.com/coins/images/7598/small/wrapped_bitcoin_wbtc.png",
-  },
-  {
-    symbol: "UNI",
-    name: "Uniswap",
-    address: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
-    decimals: 18,
-    coingeckoId: "uniswap",
-    logoURI: "https://assets.coingecko.com/coins/images/12504/small/uni.jpg",
-  },
-  {
-    symbol: "LINK",
-    name: "Chainlink",
-    address: "0x514910771AF9Ca656af840dff83E8264EcF986CA",
-    decimals: 18,
-    coingeckoId: "chainlink",
-    logoURI: "https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png",
-  },
-  {
-    symbol: "MATIC",
-    name: "Polygon",
-    address: "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0",
-    decimals: 18,
-    coingeckoId: "matic-network",
-    logoURI: "https://assets.coingecko.com/coins/images/4713/small/polygon.png",
-  },
-];
+// Popular token symbols to show as quick select buttons
+const QUICK_SELECT_TOKENS = ["ETH", "USDC", "USDT", "WETH", "UNI", "WBTC", "BNB", "1INCH"];
 
 export function TokenSelectorDialog({
   open,
@@ -92,12 +29,26 @@ export function TokenSelectorDialog({
   onSelectToken,
 }: TokenSelectorDialogProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
 
-  const filteredTokens = POPULAR_TOKENS.filter(
-    (token) =>
-      token.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      token.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Group tokens by symbol when searching
+  const filteredTokenGroups = useMemo(() => {
+    if (searchQuery) {
+      const filtered = POPULAR_TOKENS.filter(
+        (token) =>
+          token.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          token.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      return filtered.reduce((acc, token) => {
+        if (!acc[token.symbol]) {
+          acc[token.symbol] = [];
+        }
+        acc[token.symbol].push(token);
+        return acc;
+      }, {} as Record<string, Token[]>);
+    }
+    return selectedSymbol && TOKENS_BY_SYMBOL[selectedSymbol] ? { [selectedSymbol]: TOKENS_BY_SYMBOL[selectedSymbol] } : {};
+  }, [searchQuery, selectedSymbol]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -106,49 +57,149 @@ export function TokenSelectorDialog({
           <DialogTitle className="text-white">Select a token</DialogTitle>
         </DialogHeader>
         
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search by name or symbol"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
+        <div className="space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or paste address"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setSelectedSymbol(null);
+              }}
+              className="pl-9 bg-[#0e0e15] border-gray-800"
+            />
+          </div>
+          
+          {!searchQuery && (
+            <div className="flex flex-wrap gap-2">
+              {QUICK_SELECT_TOKENS.map((symbol) => {
+                const token = TOKENS_BY_SYMBOL[symbol]?.[0];
+                if (!token) return null;
+                return (
+                  <button
+                    key={symbol}
+                    onClick={() => setSelectedSymbol(symbol)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
+                      selectedSymbol === symbol
+                        ? "border-violet-500 bg-violet-500/10"
+                        : "border-gray-800 hover:border-gray-700"
+                    } transition-all`}
+                  >
+                    <div className="w-6 h-6 rounded-full overflow-hidden">
+                      {token.logoURI && (
+                        <Image
+                          src={token.logoURI}
+                          alt={symbol}
+                          width={24}
+                          height={24}
+                          className="rounded-full"
+                        />
+                      )}
+                    </div>
+                    <span className="text-sm font-medium">{symbol}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
         
-        <div className="mt-4 max-h-[400px] overflow-y-auto">
-          {filteredTokens.map((token) => (
-            <button
-              key={token.address}
-              onClick={() => {
-                onSelectToken(token);
-                onOpenChange(false);
-              }}
-              className="flex w-full items-center justify-between rounded-lg p-3 hover:bg-gray-800 transition-all duration-200"
-            >
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
-                  {token.logoURI ? (
-                    <Image
-                      src={token.logoURI}
-                      alt={token.symbol}
-                      width={32}
-                      height={32}
-                      className="rounded-full"
-                    />
-                  ) : (
-                    <span className="text-sm font-bold">{token.symbol.slice(0, 2)}</span>
-                  )}
-                </div>
-                <div className="text-left">
-                  <div className="font-medium text-white">{token.symbol}</div>
-                  <div className="text-sm text-gray-400">{token.name}</div>
-                </div>
-              </div>
-              <div className="text-right text-sm text-muted-foreground">
-                0.00
-              </div>
-            </button>
+        <div className="mt-4 max-h-[400px] overflow-y-auto space-y-4">
+          {Object.entries(filteredTokenGroups).map(([symbol, tokens]) => (
+            <div key={symbol} className="space-y-1">
+              {tokens.length > 1 ? (
+                <>
+                  <div className="flex items-center gap-3 px-3 py-2 border border-gray-800 rounded-lg bg-[#0e0e15]">
+                    <div className="h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
+                      {tokens[0].logoURI ? (
+                        <Image
+                          src={tokens[0].logoURI}
+                          alt={symbol}
+                          width={32}
+                          height={32}
+                          className="rounded-full"
+                        />
+                      ) : (
+                        <span className="text-sm font-bold">{symbol.slice(0, 2)}</span>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-white">{symbol}</div>
+                      <div className="text-sm text-gray-400">
+                        {tokens[0].name} · {tokens.length} networks
+                      </div>
+                    </div>
+                  </div>
+                  <div className="ml-4 space-y-1">
+                    {tokens.map((token) => (
+                      <button
+                        key={`${token.chainId}-${token.address}`}
+                        onClick={() => {
+                          onSelectToken(token);
+                          onOpenChange(false);
+                        }}
+                        className="flex w-full items-center justify-between rounded-lg p-2 hover:bg-gray-800 transition-all duration-200"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-xs font-medium">
+                            {token.chain.logo ? (
+                              <Image
+                                src={token.chain.logo}
+                                alt={token.chain.name}
+                                width={20}
+                                height={20}
+                                className="rounded-full"
+                              />
+                            ) : (
+                              token.chain.shortName
+                            )}
+                          </div>
+                          <span className="text-sm">{token.chain.name}</span>
+                        </div>
+                        <span className="text-sm text-gray-400">$0</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <button
+                  onClick={() => {
+                    onSelectToken(tokens[0]);
+                    onOpenChange(false);
+                  }}
+                  className="flex w-full items-center justify-between rounded-lg p-3 hover:bg-gray-800 transition-all duration-200"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
+                      {tokens[0].logoURI ? (
+                        <Image
+                          src={tokens[0].logoURI}
+                          alt={tokens[0].symbol}
+                          width={32}
+                          height={32}
+                          className="rounded-full"
+                        />
+                      ) : (
+                        <span className="text-sm font-bold">{tokens[0].symbol.slice(0, 2)}</span>
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-white">{tokens[0].symbol}</span>
+                        <span className="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded">
+                          on {tokens[0].chain.name}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-400">{tokens[0].name}</div>
+                    </div>
+                  </div>
+                  <div className="text-right text-sm text-muted-foreground">
+                    $0
+                  </div>
+                </button>
+              )}
+            </div>
           ))}
         </div>
       </DialogContent>
