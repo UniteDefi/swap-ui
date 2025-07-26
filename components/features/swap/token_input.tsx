@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
 import { useAccount, useBalance } from "wagmi";
+import { ShimmerLoader } from "@/components/ui/shimmer";
 
 export interface Chain {
   id: number;
@@ -79,9 +80,13 @@ export function TokenInput({
             readOnly={readOnly}
             className="border-0 bg-transparent text-3xl font-semibold focus-visible:ring-0 p-0 text-white placeholder:text-gray-600"
           />
-          {usdValue && (
-            <div className="text-sm text-gray-500 mt-1">~${usdValue}</div>
-          )}
+          {value && selectedToken ? (
+            usdValue ? (
+              <div className="text-sm text-gray-500 mt-1">~${usdValue}</div>
+            ) : (
+              <ShimmerLoader className="h-5 w-16 mt-1 rounded bg-gray-800" />
+            )
+          ) : null}
         </div>
         
         <Button
