@@ -4,13 +4,27 @@ import { Button } from "@/components/ui/button";
 import { useAppKit } from "@reown/appkit/react";
 import { useAccount } from "wagmi";
 import Image from "next/image";
+import { useMultiChainBalances } from "@/lib/hooks/use_multi_chain_balances";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { BalanceDropdown } from "@/components/features/balance_dropdown";
+import { ShimmerLoader } from "@/components/ui/shimmer";
+import { useState } from "react";
 
 export function Header() {
   const { open } = useAppKit();
   const { address, isConnected } = useAccount();
+  const { balances, totalUsdValue, isLoading } = useMultiChainBalances();
+  const [balanceDropdownOpen, setBalanceDropdownOpen] = useState(false);
+  
+  const formatUsdValue = (value: number) => {
+    if (value < 0.01) return "<$0.01";
+    if (value > 1000000) return `$${(value / 1000000).toFixed(2)}M`;
+    if (value > 1000) return `$${(value / 1000).toFixed(2)}K`;
+    return `$${value.toFixed(2)}`;
+  };
 
   return (
-    <header className="border-b border-gray-800 bg-[#0e0e15]">
+    <header className="fixed top-0 left-0 right-0 z-50 border-b border-gray-800/30 bg-[#0e0e15]/40 backdrop-blur-xl backdrop-saturate-150">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -27,6 +41,35 @@ export function Header() {
           </div>
           
           <div className="flex items-center space-x-4">
+            {isConnected && address && (
+              <Popover open={balanceDropdownOpen} onOpenChange={setBalanceDropdownOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="h-10 px-3 hover:bg-gray-800 rounded-xl"
+                  >
+                    {isLoading ? (
+                      <ShimmerLoader className="h-5 w-16 rounded bg-gray-800" />
+                    ) : (
+                      <span className="font-semibold text-white">
+                        {formatUsdValue(totalUsdValue)}
+                      </span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent 
+                  className="w-[380px] p-0 bg-[#1b1b23] border-gray-800" 
+                  align="end"
+                >
+                  <BalanceDropdown 
+                    balances={balances}
+                    totalUsdValue={totalUsdValue}
+                    isLoading={isLoading}
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
+            
             <Button
               onClick={() => open()}
               variant="default"
