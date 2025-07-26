@@ -11,7 +11,7 @@ export function SwapContainer() {
       <GradientWaves />
       <div className="relative z-10">
         <Header />
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 pt-24">
           <div className="max-w-[480px] mx-auto">
             <Suspense fallback={
               <div className="w-full h-[600px] bg-[#1b1b23] rounded-2xl animate-pulse" />

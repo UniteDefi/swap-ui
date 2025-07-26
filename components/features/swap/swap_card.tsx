@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TokenInput, type Token } from "./token_input";
@@ -103,23 +102,19 @@ export function SwapCard() {
   }, [fromToken, toToken, fromAmount, slippage, router]);
 
   return (
-    <Card className="w-full backdrop-blur-sm bg-[#1b1b23] shadow-2xl border border-gray-800 relative overflow-hidden rounded-2xl">
+    <Card className="w-full backdrop-blur-sm bg-[#1b1b23] shadow-2xl border border-gray-800 relative rounded-2xl">
       {!isConnected && (
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center rounded-2xl">
           <p className="text-lg font-semibold text-white">Connect wallet to start swapping</p>
         </div>
       )}
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <Tabs defaultValue="swap" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-transparent p-0 h-auto">
-              <TabsTrigger value="swap" className="data-[state=active]:text-violet-400 data-[state=inactive]:text-gray-500 font-semibold text-base pb-2 bg-transparent rounded-none border-b-2 data-[state=active]:border-violet-400 data-[state=inactive]:border-transparent w-full">Swap</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <h2 className="text-lg font-semibold text-white">Swap</h2>
           <Button 
             variant="ghost" 
             size="icon" 
-            className="ml-2 hover:bg-gray-800"
+            className="hover:bg-gray-800"
             onClick={() => setSlippageModalOpen(true)}
           >
             <Settings className="h-4 w-4" />
@@ -141,9 +136,19 @@ export function SwapCard() {
             usdValue={fromUsdValue}
           />
           
-          <div className="flex justify-center -my-2 relative z-10">
-            <button className="h-10 w-10 rounded-lg bg-[#1b1b23] border border-gray-800 hover:bg-gray-800 transition-colors flex items-center justify-center">
-              <ArrowDown className="h-5 w-5 text-violet-400" />
+          <div className="flex justify-center -my-4 relative z-10">
+            <button 
+              onClick={() => {
+                const tempToken = fromToken;
+                const tempAmount = fromAmount;
+                setFromToken(toToken);
+                setToToken(tempToken);
+                setFromAmount(toAmount);
+                setToAmount(tempAmount);
+              }}
+              className="h-10 w-10 rounded-lg bg-[#1b1b23] border border-gray-800 hover:bg-gray-800 transition-all duration-300 flex items-center justify-center group"
+            >
+              <ArrowDown className="h-5 w-5 text-violet-400 transition-transform duration-300 group-hover:rotate-180" />
             </button>
           </div>
           
@@ -166,11 +171,14 @@ export function SwapCard() {
             fromToken={fromToken}
             toToken={toToken}
             exchangeRate={exchangeRate}
-            isDutchAuction={true}
+            isDutchAuction={false}
             auctionEndTime={Date.now() + 180000}
             slippage={slippage}
             fromAmount={parseFloat(fromAmount)}
             toAmount={parseFloat(calculatedToAmount)}
+            fromTokenPrice={fromTokenPrice}
+            toTokenPrice={toTokenPrice}
+            onSlippageClick={() => setSlippageModalOpen(true)}
           />
         )}
         
