@@ -14,9 +14,9 @@ const orbitron = Orbitron({
 });
 
 export const metadata: Metadata = {
-  title: "UniteDefi - Cross-Chain Swap",
+  title: "UniteDefi",
   description:
-    "Professional cross-chain swap platform with Dutch auction pricing",
+    "One universal truly interoperable wallet for all blockchains powered by 1inch Fusion Extensions",
 };
 
 export default function RootLayout({
