@@ -8,7 +8,15 @@ import { LogsViewer } from "@/components/dashboard/logs-viewer";
 import { QueueMonitor } from "@/components/dashboard/queue-monitor";
 
 export default function HomePage() {
-  const { trades, logs, commitments, queueMessages, queueStats, isLoading, error } = useDashboardData();
+  const {
+    trades,
+    logs,
+    commitments,
+    queueMessages,
+    queueStats,
+    isLoading,
+    error,
+  } = useDashboardData();
 
   if (isLoading) {
     return (
@@ -26,14 +34,20 @@ export default function HomePage() {
     );
   }
 
-  const activeTrades = trades.filter(t => t.status === "pending").length;
-  const uniqueResolvers = new Set(commitments.map(c => c.resolverAddress).filter(Boolean)).size;
+  const activeTrades = trades.filter((t) => t.status === "pending").length;
+  const uniqueResolvers = new Set(
+    commitments.map((c) => c.resolverAddress).filter(Boolean)
+  ).size;
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-6 space-y-6 mt-24">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Unite DeFi Logger Dashboard</h1>
-        <p className="text-muted-foreground">Real-time monitoring of trades, resolvers, and system activity</p>
+        <h1 className="text-3xl font-bold mb-2">
+          Unite DeFi Infrastructure Logs
+        </h1>
+        <p className="text-muted-foreground">
+          Real-time monitoring of trades, resolvers, and system activity
+        </p>
       </div>
 
       <StatsCards
@@ -50,8 +64,8 @@ export default function HomePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <LogsViewer logs={logs} />
-        <QueueMonitor 
-          messages={queueMessages} 
+        <QueueMonitor
+          messages={queueMessages}
           messageCount={queueStats.messageCount}
           messagesInFlight={queueStats.messagesInFlight}
         />
