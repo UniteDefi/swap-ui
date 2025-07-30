@@ -159,10 +159,12 @@ export function SwapCard() {
         sourceToken: fromToken.address,
         destToken: toToken.address,
         sourceAmount: parseUnits(fromAmount, fromToken.decimals).toString(),
-        destAmount: parseUnits(toAmount, toToken.decimals).toString(),
         userAddress: address,
         secretHash,
-        slippage,
+        secret,
+        minAcceptablePrice: "0", // TODO: Calculate based on slippage
+        orderDuration: 3600, // 1 hour default
+        signature: "", // Will be populated by the API
       };
 
       const response = await fetch("/api/create-swap", {
