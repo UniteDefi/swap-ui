@@ -4,6 +4,22 @@ import { sqsClient, QUEUES } from "@/lib/aws-config";
 
 export async function GET() {
   try {
+    if (!sqsClient) {
+      console.error("[API/queue] SQS client not initialized");
+      return NextResponse.json(
+        { success: false, error: "Queue service not available" },
+        { status: 503 }
+      );
+    }
+
+    if (!QUEUES.BRIDGE_INTENT) {
+      console.error("[API/queue] Queue URL not configured");
+      return NextResponse.json(
+        { success: false, error: "Queue URL not configured" },
+        { status: 503 }
+      );
+    }
+
     // Get queue attributes
     const attributesCommand = new GetQueueAttributesCommand({
       QueueUrl: QUEUES.BRIDGE_INTENT,
