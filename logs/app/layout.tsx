@@ -13,8 +13,8 @@ const orbitron = Orbitron({
 });
 
 export const metadata: Metadata = {
-  title: "UniteDefi - Logs",
-  description: "Logs dashboard for UniteDefi",
+  title: "UniteDefi - Cross-Chain Swap",
+  description: "Professional cross-chain swap platform with Dutch auction pricing",
 };
 
 export default function RootLayout({
