@@ -13,7 +13,7 @@ const orbitron = Orbitron({
 });
 
 export const metadata: Metadata = {
-  title: "UniteDefi - Decentralized Cross-Chain Swaps",
+  title: "UniteDefi - Cross-Chain Swap",
   description: "Professional cross-chain swap platform with Dutch auction pricing",
 };
 
