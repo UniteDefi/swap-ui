@@ -9,12 +9,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { BalanceDropdown } from "@/components/features/balance_dropdown";
 import { ShimmerLoader } from "@/components/ui/shimmer";
 import { useState } from "react";
+import { OrdersSheet } from "@/components/features/orders_sheet";
+import { Receipt } from "lucide-react";
 
 export function Header() {
   const { open } = useAppKit();
   const { address, isConnected } = useAccount();
   const { balances, totalUsdValue, isLoading } = useMultiChainBalances();
   const [balanceDropdownOpen, setBalanceDropdownOpen] = useState(false);
+  const [ordersSheetOpen, setOrdersSheetOpen] = useState(false);
   
   const formatUsdValue = (value: number) => {
     if (value < 0.01) return "<$0.01";
@@ -42,32 +45,43 @@ export function Header() {
           
           <div className="flex items-center space-x-4">
             {isConnected && address && (
-              <Popover open={balanceDropdownOpen} onOpenChange={setBalanceDropdownOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="h-10 px-3 hover:bg-gray-800 rounded-xl"
-                  >
-                    {isLoading ? (
-                      <ShimmerLoader className="h-5 w-16 rounded bg-gray-800" />
-                    ) : (
-                      <span className="font-semibold text-white">
-                        {formatUsdValue(totalUsdValue)}
-                      </span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent 
-                  className="w-[380px] p-0 bg-[#1b1b23] border-gray-800" 
-                  align="end"
+              <>
+                <Button
+                  onClick={() => setOrdersSheetOpen(true)}
+                  variant="ghost"
+                  className="h-10 px-3 hover:bg-gray-800 rounded-xl flex items-center gap-2"
                 >
-                  <BalanceDropdown 
-                    balances={balances}
-                    totalUsdValue={totalUsdValue}
-                    isLoading={isLoading}
-                  />
-                </PopoverContent>
-              </Popover>
+                  <Receipt className="h-4 w-4 text-gray-400" />
+                  <span className="font-semibold text-white">Your Orders</span>
+                </Button>
+
+                <Popover open={balanceDropdownOpen} onOpenChange={setBalanceDropdownOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="h-10 px-3 hover:bg-gray-800 rounded-xl"
+                    >
+                      {isLoading ? (
+                        <ShimmerLoader className="h-5 w-16 rounded bg-gray-800" />
+                      ) : (
+                        <span className="font-semibold text-white">
+                          {formatUsdValue(totalUsdValue)}
+                        </span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent 
+                    className="w-[380px] p-0 bg-[#1b1b23] border-gray-800" 
+                    align="end"
+                  >
+                    <BalanceDropdown 
+                      balances={balances}
+                      totalUsdValue={totalUsdValue}
+                      isLoading={isLoading}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </>
             )}
             
             <Button
@@ -82,6 +96,8 @@ export function Header() {
           </div>
         </div>
       </div>
+      
+      <OrdersSheet open={ordersSheetOpen} onOpenChange={setOrdersSheetOpen} />
     </header>
   );
 }
