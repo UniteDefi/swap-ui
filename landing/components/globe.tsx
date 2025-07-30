@@ -9,6 +9,11 @@ export default function Globe() {
   useEffect(() => {
     if (!mountRef.current) return;
 
+    // Clear any existing canvas elements first
+    while (mountRef.current.firstChild) {
+      mountRef.current.removeChild(mountRef.current.firstChild);
+    }
+
     // Scene setup
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -19,21 +24,24 @@ export default function Globe() {
     );
     camera.position.z = 2.5;
 
-    const renderer = new THREE.WebGLRenderer({ 
-      antialias: true, 
-      alpha: true 
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
     });
-    renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+    renderer.setSize(
+      mountRef.current.clientWidth,
+      mountRef.current.clientHeight
+    );
     renderer.setPixelRatio(window.devicePixelRatio);
     mountRef.current.appendChild(renderer.domElement);
 
     // Globe geometry
     const globeGeometry = new THREE.SphereGeometry(1, 64, 64);
-    
+
     // Globe material with texture
     const textureLoader = new THREE.TextureLoader();
     const globeTexture = textureLoader.load("/world.jpg");
-    
+
     const globeMaterial = new THREE.MeshPhongMaterial({
       map: globeTexture,
       bumpScale: 0.05,
@@ -98,11 +106,11 @@ export default function Globe() {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0x8B5CF6, 0.8);
+    const directionalLight = new THREE.DirectionalLight(0x8b5cf6, 0.8);
     directionalLight.position.set(5, 3, 5);
     scene.add(directionalLight);
 
-    const pointLight = new THREE.PointLight(0xA78BFA, 1, 100);
+    const pointLight = new THREE.PointLight(0xa78bfa, 1, 100);
     pointLight.position.set(-5, -3, -5);
     scene.add(pointLight);
 
@@ -124,7 +132,7 @@ export default function Globe() {
 
       // Auto rotation
       globe.rotation.y += 0.002;
-      
+
       // Mouse interaction
       globe.rotation.x = mouseY * 0.2;
       globe.rotation.y += mouseX * 0.005;
@@ -141,10 +149,14 @@ export default function Globe() {
     // Handle resize
     const handleResize = () => {
       if (!mountRef.current) return;
-      
-      camera.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
+
+      camera.aspect =
+        mountRef.current.clientWidth / mountRef.current.clientHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+      renderer.setSize(
+        mountRef.current.clientWidth,
+        mountRef.current.clientHeight
+      );
     };
 
     window.addEventListener("resize", handleResize);
@@ -158,11 +170,11 @@ export default function Globe() {
       }
       renderer.dispose();
     };
-  }, []);
+  }, []); // Ensure this runs only once
 
   return (
-    <div 
-      ref={mountRef} 
+    <div
+      ref={mountRef}
       className="w-full h-full"
       style={{ minHeight: "320px" }}
     />
