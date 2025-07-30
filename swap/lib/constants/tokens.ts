@@ -14,22 +14,12 @@ export const CHAINS: Record<number, Chain> = {
 export const POPULAR_TOKENS: Token[] = [
   // Polygon Amoy
   {
-    symbol: "MATIC",
-    name: "Polygon",
-    address: "0x0000000000000000000000000000000000000000",
-    decimals: 18,
-    coingeckoId: "matic-network",
-    logoURI: "/logos/polygon.png",
-    chainId: 80002,
-    chain: CHAINS[80002],
-  },
-  {
     symbol: "WMATIC",
     name: "Wrapped Matic",
     address: "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
     decimals: 18,
     coingeckoId: "wmatic",
-    logoURI: "/logos/wmatic.png",
+    logoURI: "/logos/polygon.png",
     chainId: 80002,
     chain: CHAINS[80002],
   },
@@ -56,22 +46,12 @@ export const POPULAR_TOKENS: Token[] = [
 
   // Arbitrum Sepolia
   {
-    symbol: "ETH",
-    name: "Ether",
-    address: "0x0000000000000000000000000000000000000000",
-    decimals: 18,
-    coingeckoId: "ethereum",
-    logoURI: "/logos/ethereum.png",
-    chainId: 421614,
-    chain: CHAINS[421614],
-  },
-  {
     symbol: "WETH",
     name: "Wrapped Ether",
     address: "0x980B62Da83eFf3D4576C647993b0c1D7faf17c73",
     decimals: 18,
     coingeckoId: "weth",
-    logoURI: "/logos/weth.png",
+    logoURI: "/logos/ethereum.png",
     chainId: 421614,
     chain: CHAINS[421614],
   },
@@ -98,22 +78,12 @@ export const POPULAR_TOKENS: Token[] = [
 
   // Base Sepolia
   {
-    symbol: "ETH",
-    name: "Ether",
-    address: "0x0000000000000000000000000000000000000000",
-    decimals: 18,
-    coingeckoId: "ethereum",
-    logoURI: "/logos/ethereum.png",
-    chainId: 84532,
-    chain: CHAINS[84532],
-  },
-  {
     symbol: "WETH",
     name: "Wrapped Ether",
     address: "0x4200000000000000000000000000000000000006",
     decimals: 18,
     coingeckoId: "weth",
-    logoURI: "/logos/weth.png",
+    logoURI: "/logos/ethereum.png",
     chainId: 84532,
     chain: CHAINS[84532],
   },
@@ -140,22 +110,12 @@ export const POPULAR_TOKENS: Token[] = [
 
   // BNB Testnet
   {
-    symbol: "BNB",
-    name: "BNB",
-    address: "0x0000000000000000000000000000000000000000",
-    decimals: 18,
-    coingeckoId: "binancecoin",
-    logoURI: "/logos/bnb.png",
-    chainId: 97,
-    chain: CHAINS[97],
-  },
-  {
     symbol: "WBNB",
     name: "Wrapped BNB",
     address: "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd",
     decimals: 18,
     coingeckoId: "wbnb",
-    logoURI: "/logos/wbnb.png",
+    logoURI: "/logos/bnb.png",
     chainId: 97,
     chain: CHAINS[97],
   },
@@ -182,22 +142,12 @@ export const POPULAR_TOKENS: Token[] = [
 
   // Ethereum Sepolia
   {
-    symbol: "ETH",
-    name: "Ether",
-    address: "0x0000000000000000000000000000000000000000",
-    decimals: 18,
-    coingeckoId: "ethereum",
-    logoURI: "/logos/ethereum.png",
-    chainId: 11155111,
-    chain: CHAINS[11155111],
-  },
-  {
     symbol: "WETH",
     name: "Wrapped Ether",
     address: "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
     decimals: 18,
     coingeckoId: "weth",
-    logoURI: "/logos/weth.png",
+    logoURI: "/logos/ethereum.png",
     chainId: 11155111,
     chain: CHAINS[11155111],
   },
@@ -224,22 +174,12 @@ export const POPULAR_TOKENS: Token[] = [
 
   // Monad Testnet
   {
-    symbol: "MON",
-    name: "Monad",
-    address: "0x0000000000000000000000000000000000000000",
-    decimals: 18,
-    coingeckoId: "monad",
-    logoURI: "/logos/monad.png",
-    chainId: 41454,
-    chain: CHAINS[41454],
-  },
-  {
     symbol: "WMON",
     name: "Wrapped Monad",
     address: "0x1234567890123456789012345678901234567894", // Mock address for testnet
     decimals: 18,
     coingeckoId: "wmon",
-    logoURI: "/logos/wmon.png",
+    logoURI: "/logos/monad.png",
     chainId: 41454,
     chain: CHAINS[41454],
   },
@@ -266,22 +206,12 @@ export const POPULAR_TOKENS: Token[] = [
 
   // Etherlink Testnet
   {
-    symbol: "XTZ",
-    name: "Tez",
-    address: "0x0000000000000000000000000000000000000000",
-    decimals: 18,
-    coingeckoId: "tezos",
-    logoURI: "/logos/etherlink.png",
-    chainId: 128123,
-    chain: CHAINS[128123],
-  },
-  {
     symbol: "WXTZ",
     name: "Wrapped Tez",
     address: "0x1234567890123456789012345678901234567897", // Mock address for testnet
     decimals: 18,
     coingeckoId: "wxtz",
-    logoURI: "/logos/wxtz.png",
+    logoURI: "/logos/tezos.png",
     chainId: 128123,
     chain: CHAINS[128123],
   },
@@ -308,22 +238,12 @@ export const POPULAR_TOKENS: Token[] = [
 
   // Sei Testnet
   {
-    symbol: "SEI",
-    name: "Sei",
-    address: "0x0000000000000000000000000000000000000000",
-    decimals: 18,
-    coingeckoId: "sei-network",
-    logoURI: "/logos/sei.png",
-    chainId: 713715,
-    chain: CHAINS[713715],
-  },
-  {
     symbol: "WSEI",
     name: "Wrapped Sei",
     address: "0x123456789012345678901234567890123456789A", // Mock address for testnet
     decimals: 18,
     coingeckoId: "wsei",
-    logoURI: "/logos/wsei.png",
+    logoURI: "/logos/sei.png",
     chainId: 713715,
     chain: CHAINS[713715],
   },
