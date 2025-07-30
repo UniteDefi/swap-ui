@@ -24,29 +24,29 @@ const Globe = dynamic(() => import("@/components/globe"), {
 
 export default function HomePage() {
   const supportedChains = [
-    "Aptos",
-    "Bitcoin",
-    "Injective",
-    "Osmosis",
-    "Sei",
-    "Near",
-    "Sui",
-    "Tron",
-    "Stellar",
-    "Etherlink",
-    "TON",
-    "Monad",
-    "Cardano",
-    "XRP Ledger",
-    "ICP",
-    "Tezos",
-    "Polkadot",
-    "EOS",
-    "Base",
-    "Arbitrum",
-    "Ethereum",
-    "Polygon",
-    "BNB",
+    { name: "Aptos", logo: "/logos/aptos.png" },
+    { name: "Bitcoin", logo: "/logos/bitcoin.png" },
+    { name: "Injective", logo: "/logos/injective.png" },
+    { name: "Osmosis", logo: "/logos/osmosis.png" },
+    { name: "Sei", logo: "/logos/sei.png" },
+    { name: "Near", logo: "/logos/near.png" },
+    { name: "Sui", logo: "/logos/sui.png" },
+    { name: "Tron", logo: "/logos/tron.png" },
+    { name: "Stellar", logo: "/logos/stellar.png" },
+    { name: "Etherlink", logo: "/logos/etherlink.png" },
+    { name: "TON", logo: "/logos/ton.png" },
+    { name: "Monad", logo: "/logos/monad.png" },
+    { name: "Cardano", logo: "/logos/cardano.png" },
+    { name: "XRP Ledger", logo: "/logos/xrp.png" },
+    { name: "ICP", logo: "/logos/icp.png" },
+    { name: "Tezos", logo: "/logos/tezos.png" },
+    { name: "Polkadot", logo: "/logos/polkadot.png" },
+    { name: "EOS", logo: "/logos/eos.png" },
+    { name: "Base", logo: "/logos/base.png" },
+    { name: "Arbitrum", logo: "/logos/arbitrum.png" },
+    { name: "Ethereum", logo: "/logos/ethereum.png" },
+    { name: "Polygon", logo: "/logos/polygon.png" },
+    { name: "BNB", logo: "/logos/bnb.png" },
   ];
 
   return (
@@ -162,16 +162,18 @@ export default function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 max-w-6xl mx-auto">
             {supportedChains.map((chain, index) => (
               <div
-                key={chain}
+                key={chain.name}
                 className="bg-gradient-to-br from-violet-900/10 to-purple-900/10 backdrop-blur-sm border border-violet-800/30 rounded-lg p-4 text-center hover:from-violet-900/20 hover:to-purple-900/20 hover:border-violet-700/50 transition-all transform hover:scale-105"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className="w-12 h-12 bg-gradient-to-br from-violet-600/20 to-purple-600/20 rounded-full mx-auto mb-2 flex items-center justify-center">
-                  <span className="text-xs font-bold">
-                    {chain.substring(0, 3).toUpperCase()}
-                  </span>
+                <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center">
+                  <img 
+                    src={chain.logo} 
+                    alt={chain.name} 
+                    className="w-10 h-10 object-contain"
+                  />
                 </div>
-                <span className="text-sm text-gray-300">{chain}</span>
+                <span className="text-sm text-gray-300">{chain.name}</span>
               </div>
             ))}
           </div>
