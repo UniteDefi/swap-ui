@@ -29,7 +29,6 @@ export function useDashboardData(refreshInterval: number = 5000) {
         tradesRes.json(),
         logsRes.json(),
       ]);
-
       setData({
         trades: tradesData.data || [],
         logs: logsData.data || [],
@@ -38,7 +37,7 @@ export function useDashboardData(refreshInterval: number = 5000) {
       });
     } catch (error) {
       console.error("[useDashboardData] Error fetching data:", error);
-      setData(prev => ({
+      setData((prev) => ({
         ...prev,
         isLoading: false,
         error: "Failed to fetch dashboard data",
