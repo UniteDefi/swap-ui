@@ -1,5 +1,5 @@
 {
-  "name": "unitedefi-swap-ui",
+  "name": "unitedefi-logs-ui",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "cleanup-aws": "tsx scripts/cleanup-aws-data.ts",
+    "generate-data": "tsx scripts/generate-dummy-data.ts"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.857.0",
