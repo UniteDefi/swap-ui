@@ -20,18 +20,17 @@ export function LogsViewer({ logs }: LogsViewerProps) {
             <div key={`${log.tradeId}-${index}`} className="font-mono text-xs p-2 rounded bg-muted/50 hover:bg-muted">
               <div className="flex items-start gap-2">
                 <span className={`px-1.5 py-0.5 rounded text-xs ${
-                  log.level === "error" ? "bg-red-500/20 text-red-500" :
-                  log.level === "warn" ? "bg-yellow-500/20 text-yellow-500" :
-                  log.level === "info" ? "bg-blue-500/20 text-blue-500" :
+                  log.source === "UI" ? "bg-blue-500/20 text-blue-500" :
+                  log.source === "Relayer" ? "bg-purple-500/20 text-purple-500" :
+                  log.source?.startsWith("Resolver") ? "bg-green-500/20 text-green-500" :
                   "bg-gray-500/20 text-gray-500"
                 }`}>
-                  {log.level || "info"}
+                  {log.source}
                 </span>
                 <span className="text-muted-foreground">
                   {log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : ""}
                 </span>
-                <span className="text-muted-foreground">[{log.source || "system"}]</span>
-                <span className="flex-1 break-all">{log.message}</span>
+                <span className="flex-1 break-all">{log.title}: {log.description}</span>
               </div>
               {log.data && (
                 <pre className="mt-2 text-xs bg-background/50 p-2 rounded overflow-x-auto">
