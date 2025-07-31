@@ -4,10 +4,10 @@ interface StatsCardsProps {
   totalTrades: number;
   activeTrades: number;
   totalResolvers: number;
-  queueMessages: number;
+  queuedTrades: number;
 }
 
-export function StatsCards({ totalTrades, activeTrades, totalResolvers, queueMessages }: StatsCardsProps) {
+export function StatsCards({ totalTrades, activeTrades, totalResolvers, queuedTrades }: StatsCardsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <div className="rounded-lg border bg-card p-6">
@@ -49,8 +49,8 @@ export function StatsCards({ totalTrades, activeTrades, totalResolvers, queueMes
       <div className="rounded-lg border bg-card p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-muted-foreground">Queue Messages</p>
-            <p className="text-2xl font-bold">{queueMessages}</p>
+            <p className="text-sm text-muted-foreground">Queued Trades</p>
+            <p className="text-2xl font-bold">{queuedTrades}</p>
           </div>
           <div className="h-12 w-12 rounded-full bg-orange-500/20 flex items-center justify-center">
             <span className="text-orange-500 text-lg">📨</span>
