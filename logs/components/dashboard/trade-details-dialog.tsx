@@ -25,12 +25,73 @@ import { ExplorerLink } from "@/components/ui/explorer-link";
 import { getTimeProgress } from "@/components/ui/countdown-timer";
 import { getRelativeTime } from "@/lib/time-utils";
 import { chainConfigs } from "@/lib/chains";
+import { LogEntry } from "@/components/ui/log-components";
+import { Log } from "@/types";
 import Image from "next/image";
 
 interface TradeDetailsDialogProps {
   trade: Trade | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+}
+
+// LogsTimeline component to fetch and display logs for a trade
+function LogsTimeline({ tradeId }: { tradeId: string }) {
+  const [logs, setLogs] = useState<Log[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/logs?tradeId=${tradeId}`);
+        if (response.ok) {
+          const data = await response.json();
+          // Sort logs by timestamp
+          const sortedLogs = data.sort((a: Log, b: Log) => 
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+          );
+          setLogs(sortedLogs);
+        }
+      } catch (error) {
+        console.error("[LogsTimeline] Error fetching logs:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (tradeId) {
+      fetchLogs();
+    }
+  }, [tradeId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (logs.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <p>No logs available for this trade</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 max-h-96 overflow-y-auto">
+      {logs.map((log, index) => (
+        <LogEntry
+          key={`${log.tradeId}-${log.timestamp}-${index}`}
+          log={log}
+          isLast={index === logs.length - 1}
+        />
+      ))}
+    </div>
+  );
 }
 
 export function TradeDetailsDialog({
@@ -266,10 +327,10 @@ export function TradeDetailsDialog({
 
           <div className="border-t" />
 
-          {/* Logs Section - Placeholder */}
+          {/* Logs Section */}
           <div>
             <h3 className="text-sm font-semibold mb-3">Logs</h3>
-            <p className="text-sm text-muted-foreground">Logs will be displayed here</p>
+            <LogsTimeline tradeId={trade.tradeId} />
           </div>
         </div>
       </DialogContent>
