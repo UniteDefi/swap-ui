@@ -3,17 +3,12 @@
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { TradeTable } from "@/components/dashboard/trade-table";
-import { ResolverCommitments } from "@/components/dashboard/resolver-commitments";
 import { LogsViewer } from "@/components/dashboard/logs-viewer";
-import { QueueMonitor } from "@/components/dashboard/queue-monitor";
 
 export default function HomePage() {
   const {
     trades,
     logs,
-    commitments,
-    queueMessages,
-    queueStats,
     isLoading,
     error,
   } = useDashboardData();
@@ -34,10 +29,12 @@ export default function HomePage() {
     );
   }
 
-  const activeTrades = trades.filter((t) => t.status === "pending").length;
-  const uniqueResolvers = new Set(
-    commitments.map((c) => c.resolverAddress).filter(Boolean)
-  ).size;
+  // Active trades are those with "committed" status
+  const activeTrades = trades.filter((t) => t.status === "committed").length;
+  // Fixed at 4 resolvers as specified
+  const activeResolvers = 4;
+  // Queued trades are those in auction
+  const queuedTrades = trades.filter((t) => t.status === "in_auction").length;
 
   return (
     <div className="container mx-auto p-6 space-y-6 mt-24">
@@ -53,23 +50,13 @@ export default function HomePage() {
       <StatsCards
         totalTrades={trades.length}
         activeTrades={activeTrades}
-        totalResolvers={uniqueResolvers}
-        queueMessages={queueStats.messageCount}
+        totalResolvers={activeResolvers}
+        queuedTrades={queuedTrades}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TradeTable trades={trades} />
-        <ResolverCommitments commitments={commitments} />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <LogsViewer logs={logs} />
-        <QueueMonitor
-          messages={queueMessages}
-          messageCount={queueStats.messageCount}
-          messagesInFlight={queueStats.messagesInFlight}
-        />
-      </div>
+      <TradeTable trades={trades} />
+      
+      <LogsViewer logs={logs} />
     </div>
   );
 }
