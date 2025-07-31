@@ -206,51 +206,290 @@ async function generateDummyData() {
 
     trades.push(trade);
 
-    // Generate logs for each trade
-    const logMessages = [
-      { level: "info", message: `Trade ${tradeId} created`, source: "relayer" },
-    ];
+    // Generate realistic logs following trade lifecycle
+    const tradeLogs: any[] = [];
+    let logTime = createdAt;
+
+    // 1. Order Creation (UI)
+    tradeLogs.push({
+      tradeId,
+      timestamp: new Date(logTime).toISOString(),
+      title: "Order Created",
+      source: "UI",
+      orderId: trade.orderHash,
+      description: `User created swap order for ${srcAmount} ${fromToken.symbol} → ${toToken.symbol}`,
+      logType: "order_creation",
+      data: {
+        orderHash: trade.orderHash,
+        signature: generateTxHash(),
+        secretHash: trade.secretHash,
+        srcToken: fromToken.symbol,
+        dstToken: toToken.symbol,
+        srcAmount,
+        dstAmount: trade.toAmount,
+        srcChainId: fromChain.id,
+        dstChainId: toChain.id,
+        makerAddress,
+        deadline: new Date(createdAt + 5 * 60 * 1000).toISOString(),
+      },
+    });
+
+    logTime += 1000; // 1 second later
+
+    // 2. Order Broadcast (Relayer)
+    tradeLogs.push({
+      tradeId,
+      timestamp: new Date(logTime).toISOString(),
+      title: "Order Broadcasted",
+      source: "Relayer",
+      orderId: trade.orderHash,
+      description: "Relayer broadcasted order to all available resolvers",
+      logType: "order_broadcast",
+      data: {
+        orderHash: trade.orderHash,
+        broadcastTimestamp: new Date(logTime).toISOString(),
+        resolversNotified: resolvers,
+        resolverCount: resolvers.length,
+      },
+    });
 
     if (status !== "in_auction") {
-      logMessages.push({
-        level: "info",
-        message: `Resolver ${trade.resolverAddress} committed to trade ${tradeId}`,
-        source: "resolver",
-      });
-    }
+      logTime += 2000; // 2 seconds later
 
-    if (status === "completed") {
-      logMessages.push({
-        level: "info",
-        message: `Trade ${tradeId} completed successfully`,
-        source: "relayer",
-      });
-    } else if (status === "rescue_available") {
-      logMessages.push({
-        level: "warn",
-        message: `Trade ${tradeId} expired - rescue available`,
-        source: "monitor",
-      });
-    } else if (status === "failed") {
-      logMessages.push({
-        level: "error",
-        message: `Trade ${tradeId} failed - funds rescued`,
-        source: "rescuer",
-      });
-    }
+      // 3. Resolver Commitments
+      const participatingResolvers = resolvers.slice(0, Math.floor(Math.random() * 3) + 1); // 1-3 resolvers
+      const totalFillAmount = parseFloat(trade.toAmount === "pending" ? srcAmount : trade.toAmount);
+      let remainingAmount = totalFillAmount;
 
-    logMessages.forEach((logMsg, index) => {
-      logs.push({
+      participatingResolvers.forEach((resolverAddr, index) => {
+        const fillAmount = index === participatingResolvers.length - 1 
+          ? remainingAmount 
+          : Math.min(remainingAmount, totalFillAmount * (0.2 + Math.random() * 0.6));
+        const fillPercentage = (fillAmount / totalFillAmount) * 100;
+        remainingAmount -= fillAmount;
+
+        const resolverSource = `Resolver${String.fromCharCode(65 + index)}` as any; // A, B, C, D
+
+        tradeLogs.push({
+          tradeId,
+          timestamp: new Date(logTime + index * 500).toISOString(),
+          title: `${fillPercentage.toFixed(1)}% Fill Commitment`,
+          source: resolverSource,
+          orderId: trade.orderHash,
+          description: `Resolver committed to fill ${fillAmount.toFixed(6)} ${toToken.symbol}`,
+          logType: "resolver_commitment",
+          data: {
+            resolverAddress: resolverAddr,
+            commitmentHash: generateTxHash(),
+            fillAmount: fillAmount.toFixed(6),
+            fillPercentage: Math.round(fillPercentage),
+            safetyDepositAmount: (fillAmount * 0.1).toFixed(6),
+            commitmentTxHash: generateTxHash(),
+            chainId: toChain.id,
+          },
+        });
+      });
+
+      logTime += participatingResolvers.length * 500 + 3000; // After all commitments + 3 seconds
+
+      // 4. Escrow Deployment (Lead Resolver)
+      tradeLogs.push({
         tradeId,
-        timestamp: new Date(createdAt + index * 1000).toISOString(),
-        ...logMsg,
+        timestamp: new Date(logTime).toISOString(),
+        title: "Escrows Deployed",
+        source: "ResolverA",
+        orderId: trade.orderHash,
+        description: "Lead resolver deployed source and destination escrows",
+        logType: "escrow_deployment",
         data: {
-          fromChain: fromChain.name,
-          toChain: toChain.name,
-          amount: srcAmount,
+          resolverAddress: participatingResolvers[0],
+          srcEscrowAddress: generateAddress(),
+          dstEscrowAddress: generateAddress(),
+          deploySrcTxHash: trade.deploySrcEscrowTxHash!,
+          deployDstTxHash: trade.deployDstEscrowTxHash!,
+          srcChainId: fromChain.id,
+          dstChainId: toChain.id,
+          gasUsed: {
+            src: (150000 + Math.floor(Math.random() * 50000)).toString(),
+            dst: (140000 + Math.floor(Math.random() * 50000)).toString(),
+          },
         },
       });
-    });
+
+      if (status !== "committed") {
+        logTime += 5000; // 5 seconds later
+
+        // 5. Asset Lock (Relayer)
+        tradeLogs.push({
+          tradeId,
+          timestamp: new Date(logTime).toISOString(),
+          title: "Assets Locked",
+          source: "Relayer",
+          orderId: trade.orderHash,
+          description: `Locked ${srcAmount} ${fromToken.symbol} in source escrow`,
+          logType: "asset_lock",
+          data: {
+            lockTxHash: trade.lockSrcTxHash!,
+            amount: srcAmount,
+            token: fromToken.symbol,
+            escrowAddress: generateAddress(),
+            userAddress: makerAddress,
+            chainId: fromChain.id,
+            gasPrice: (20000000000 + Math.floor(Math.random() * 10000000000)).toString(),
+          },
+        });
+
+        logTime += 2000; // 2 seconds later
+
+        // 6. Destination Fills (Resolvers)
+        let cumulativeFilled = 0;
+        participatingResolvers.forEach((resolverAddr, index) => {
+          const fillAmount = totalFillAmount / participatingResolvers.length;
+          cumulativeFilled += fillAmount;
+          const resolverSource = `Resolver${String.fromCharCode(65 + index)}` as any;
+
+          tradeLogs.push({
+            tradeId,
+            timestamp: new Date(logTime + index * 1000).toISOString(),
+            title: "Destination Assets Filled",
+            source: resolverSource,
+            orderId: trade.orderHash,
+            description: `Filled ${fillAmount.toFixed(6)} ${toToken.symbol} in destination escrow`,
+            logType: "destination_fill",
+            data: {
+              resolverAddress: resolverAddr,
+              fillTxHash: generateTxHash(),
+              fillAmount: fillAmount.toFixed(6),
+              token: toToken.symbol,
+              escrowAddress: generateAddress(),
+              chainId: toChain.id,
+              cumulativeFilled: cumulativeFilled.toFixed(6),
+              remainingToFill: (totalFillAmount - cumulativeFilled).toFixed(6),
+            },
+          });
+        });
+
+        logTime += participatingResolvers.length * 1000 + 1000; // After all fills + 1 second
+
+        // 7. Fill Complete (Relayer)
+        tradeLogs.push({
+          tradeId,
+          timestamp: new Date(logTime).toISOString(),
+          title: "Order Fully Filled",
+          source: "Relayer",
+          orderId: trade.orderHash,
+          description: "All resolvers have filled their commitments",
+          logType: "fill_complete",
+          data: {
+            totalFilled: totalFillAmount.toFixed(6),
+            targetAmount: totalFillAmount.toFixed(6),
+            fillComplete: true,
+            participatingResolvers,
+            completionTimestamp: new Date(logTime).toISOString(),
+          },
+        });
+
+        logTime += 2000; // 2 seconds later
+
+        // 8. Secret Reveal (Relayer)
+        tradeLogs.push({
+          tradeId,
+          timestamp: new Date(logTime).toISOString(),
+          title: "Secret Revealed",
+          source: "Relayer",
+          orderId: trade.orderHash,
+          description: "Secret revealed to all participating resolvers",
+          logType: "secret_reveal",
+          data: {
+            secret: trade.secret || generateTxHash(),
+            secretHash: trade.secretHash,
+            broadcastTimestamp: new Date(logTime).toISOString(),
+            sqsMessageId: `msg-${Math.random().toString(36).substr(2, 9)}`,
+            hashVerified: true,
+          },
+        });
+
+        if (status === "completed") {
+          logTime += 3000; // 3 seconds later
+
+          // 9. User Releases (Resolvers)
+          participatingResolvers.forEach((resolverAddr, index) => {
+            const resolverSource = `Resolver${String.fromCharCode(65 + index)}` as any;
+            const releaseAmount = totalFillAmount / participatingResolvers.length;
+
+            tradeLogs.push({
+              tradeId,
+              timestamp: new Date(logTime + index * 500).toISOString(),
+              title: "Funds Released to User",
+              source: resolverSource,
+              orderId: trade.orderHash,
+              description: `Released ${releaseAmount.toFixed(6)} ${toToken.symbol} to user`,
+              logType: "user_release",
+              data: {
+                resolverAddress: resolverAddr,
+                unlockTxHash: generateTxHash(),
+                amount: releaseAmount.toFixed(6),
+                token: toToken.symbol,
+                recipient: makerAddress,
+                chainId: toChain.id,
+                secret: trade.secret || generateTxHash(),
+              },
+            });
+          });
+
+          logTime += participatingResolvers.length * 500 + 1000; // After all releases + 1 second
+
+          // 10. Safety Recovery & 11. Source Collection (Resolvers)
+          participatingResolvers.forEach((resolverAddr, index) => {
+            const resolverSource = `Resolver${String.fromCharCode(65 + index)}` as any;
+            const rewardAmount = (parseFloat(srcAmount) / participatingResolvers.length).toFixed(6);
+            const safetyAmount = (parseFloat(rewardAmount) * 0.1).toFixed(6);
+
+            // Safety Recovery
+            tradeLogs.push({
+              tradeId,
+              timestamp: new Date(logTime + index * 800).toISOString(),
+              title: "Safety Deposit Recovered",
+              source: resolverSource,
+              orderId: trade.orderHash,
+              description: `Recovered safety deposit from destination escrow`,
+              logType: "safety_recovery", 
+              data: {
+                resolverAddress: resolverAddr,
+                claimTxHash: generateTxHash(),
+                safetyAmount,
+                token: toToken.symbol,
+                chainId: toChain.id,
+                escrowAddress: generateAddress(),
+              },
+            });
+
+            // Source Collection
+            tradeLogs.push({
+              tradeId,
+              timestamp: new Date(logTime + index * 800 + 400).toISOString(),
+              title: "Source Assets Collected",
+              source: resolverSource,
+              orderId: trade.orderHash,
+              description: `Collected rewards and safety deposit from source escrow`,
+              logType: "source_collect",
+              data: {
+                resolverAddress: resolverAddr,
+                collectTxHash: generateTxHash(),
+                rewardAmount,
+                safetyAmount,
+                totalAmount: (parseFloat(rewardAmount) + parseFloat(safetyAmount)).toFixed(6),
+                token: fromToken.symbol,
+                chainId: fromChain.id,
+                escrowAddress: generateAddress(),
+              },
+            });
+          });
+        }
+      }
+    }
+
+    logs.push(...tradeLogs);
   }
 
   // Insert all trades
