@@ -30,11 +30,156 @@ export interface Trade {
   unlockResolverTxHash?: string; // Unlock funds to resolver on source
 }
 
+export type LogSource = "UI" | "Relayer" | "ResolverA" | "ResolverB" | "ResolverC" | "ResolverD";
+
+export type LogType = 
+  | "order_creation"
+  | "order_broadcast" 
+  | "resolver_commitment"
+  | "escrow_deployment"
+  | "asset_lock"
+  | "destination_fill"
+  | "fill_complete"
+  | "secret_reveal"
+  | "user_release"
+  | "safety_recovery"
+  | "source_collect";
+
+// Log data interfaces for each type
+export interface OrderCreationData {
+  orderHash: string;
+  signature: string;
+  secretHash: string;
+  srcToken: string;
+  dstToken: string;
+  srcAmount: string;
+  dstAmount: string;
+  srcChainId: number;
+  dstChainId: number;
+  makerAddress: string;
+  deadline: string;
+}
+
+export interface OrderBroadcastData {
+  orderHash: string;
+  broadcastTimestamp: string;
+  resolversNotified: string[];
+  resolverCount: number;
+}
+
+export interface ResolverCommitmentData {
+  resolverAddress: string;
+  commitmentHash: string;
+  fillAmount: string;
+  fillPercentage: number;
+  safetyDepositAmount: string;
+  commitmentTxHash: string;
+  chainId: number;
+}
+
+export interface EscrowDeploymentData {
+  resolverAddress: string;
+  srcEscrowAddress: string;
+  dstEscrowAddress: string;
+  deploySrcTxHash: string;
+  deployDstTxHash: string;
+  srcChainId: number;
+  dstChainId: number;
+  gasUsed: {
+    src: string;
+    dst: string;
+  };
+}
+
+export interface AssetLockData {
+  lockTxHash: string;
+  amount: string;
+  token: string;
+  escrowAddress: string;
+  userAddress: string;
+  chainId: number;
+  gasPrice: string;
+}
+
+export interface DestinationFillData {
+  resolverAddress: string;
+  fillTxHash: string;
+  fillAmount: string;
+  token: string;
+  escrowAddress: string;
+  chainId: number;
+  cumulativeFilled: string;
+  remainingToFill: string;
+}
+
+export interface FillCompleteData {
+  totalFilled: string;
+  targetAmount: string;
+  fillComplete: boolean;
+  participatingResolvers: string[];
+  completionTimestamp: string;
+}
+
+export interface SecretRevealData {
+  secret: string;
+  secretHash: string;
+  broadcastTimestamp: string;
+  sqsMessageId: string;
+  hashVerified: boolean;
+}
+
+export interface UserReleaseData {
+  resolverAddress: string;
+  unlockTxHash: string;
+  amount: string;
+  token: string;
+  recipient: string;
+  chainId: number;
+  secret: string;
+}
+
+export interface SafetyRecoveryData {
+  resolverAddress: string;
+  claimTxHash: string;
+  safetyAmount: string;
+  token: string;
+  chainId: number;
+  escrowAddress: string;
+}
+
+export interface SourceCollectData {
+  resolverAddress: string;
+  collectTxHash: string;
+  rewardAmount: string;
+  safetyAmount: string;
+  totalAmount: string;
+  token: string;
+  chainId: number;
+  escrowAddress: string;
+}
+
+export type LogData = 
+  | OrderCreationData
+  | OrderBroadcastData
+  | ResolverCommitmentData
+  | EscrowDeploymentData
+  | AssetLockData
+  | DestinationFillData
+  | FillCompleteData
+  | SecretRevealData
+  | UserReleaseData
+  | SafetyRecoveryData
+  | SourceCollectData;
+
 export interface Log {
   tradeId: string;
-  timestamp?: string;
-  level?: string;
-  message?: string;
-  data?: any;
-  source?: string;
+  timestamp: string;
+  title: string;
+  source: LogSource;
+  orderId: string;
+  description: string;
+  logType: LogType;
+  data: LogData;
+  txHash?: string;
+  chainId?: number;
 }
