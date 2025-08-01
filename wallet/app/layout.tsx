@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Space_Grotesk, Orbitron } from "next/font/google";
 import "./globals.css";
 import Layout from "@/components/layout";
+import { WalletGuard } from "@/components/wallet/wallet-guard";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -14,9 +15,9 @@ const orbitron = Orbitron({
 });
 
 export const metadata: Metadata = {
-  title: "UniteDefi - Cross-Chain Swap",
+  title: "Unite DeFi Wallet",
   description:
-    "Professional cross-chain swap platform with Dutch auction pricing",
+    "Multi-chain wallet for decentralized finance",
 };
 
 export default function RootLayout({
@@ -29,7 +30,9 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.className} ${spaceGrotesk.variable} ${orbitron.variable} dark`}
       >
-        <Layout> {children}</Layout>
+        <WalletGuard>
+          <Layout>{children}</Layout>
+        </WalletGuard>
       </body>
     </html>
   );
