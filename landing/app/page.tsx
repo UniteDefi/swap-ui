@@ -5,11 +5,11 @@ import dynamic from "next/dynamic";
 import {
   ArrowRight,
   Code,
-  Wallet,
   FileText,
   Trophy,
   Github,
   Twitter,
+  Play,
 } from "lucide-react";
 
 // Dynamically import Globe to avoid SSR issues with Three.js
@@ -24,29 +24,34 @@ const Globe = dynamic(() => import("@/components/globe"), {
 
 export default function HomePage() {
   const supportedChains = [
+    // Non-EVM Chains
     { name: "Aptos", logo: "/logos/aptos.png" },
-    { name: "Bitcoin", logo: "/logos/bitcoin.png" },
-    { name: "Injective", logo: "/logos/injective.png" },
-    { name: "Osmosis", logo: "/logos/osmosis.png" },
-    { name: "Sei", logo: "/logos/sei.png" },
-    { name: "Near", logo: "/logos/near.png" },
     { name: "Sui", logo: "/logos/sui.png" },
-    { name: "Tron", logo: "/logos/tron.png" },
-    { name: "Stellar", logo: "/logos/stellar.png" },
-    { name: "Etherlink", logo: "/logos/etherlink.png" },
-    { name: "TON", logo: "/logos/ton.png" },
-    { name: "Monad", logo: "/logos/monad.png" },
     { name: "Cardano", logo: "/logos/cardano.png" },
+    { name: "Stellar", logo: "/logos/stellar.png" },
+    { name: "Osmosis", logo: "/logos/osmosis.png" },
+    { name: "Secret Network", logo: "/logos/secret.png" },
     { name: "XRP Ledger", logo: "/logos/xrp.png" },
-    { name: "ICP", logo: "/logos/icp.png" },
-    { name: "Tezos", logo: "/logos/tezos.png" },
+    { name: "TON", logo: "/logos/ton.png" },
+    { name: "Near", logo: "/logos/near.png" },
     { name: "Polkadot", logo: "/logos/polkadot.png" },
-    { name: "EOS", logo: "/logos/eos.png" },
+    { name: "Starknet", logo: "/logos/starknet.png" },
+    // EVM Chains
+    { name: "Etherlink", logo: "/logos/etherlink.png" },
+    { name: "Monad", logo: "/logos/monad.png" },
+    { name: "Injective EVM", logo: "/logos/injective.png" },
+    { name: "Aurora", logo: "/logos/aurora.jpg" },
+    { name: "BNB", logo: "/logos/bnb.png" },
+    { name: "Optimism", logo: "/logos/optimism.png" },
+    { name: "Polygon", logo: "/logos/polygon.png" },
+    { name: "Scroll", logo: "/logos/scroll.png" },
+    { name: "Celo", logo: "/logos/celo.png" },
+    { name: "Unichain", logo: "/logos/unichain.jpg" },
+    { name: "Flow EVM", logo: "/logos/flow.jpg" },
+    { name: "Sei", logo: "/logos/sei.png" },
     { name: "Base", logo: "/logos/base.png" },
     { name: "Arbitrum", logo: "/logos/arbitrum.png" },
     { name: "Ethereum", logo: "/logos/ethereum.png" },
-    { name: "Polygon", logo: "/logos/polygon.png" },
-    { name: "BNB", logo: "/logos/bnb.png" },
   ];
 
   return (
@@ -66,7 +71,7 @@ export default function HomePage() {
               UniteDeFi
             </h1>
             <p className="text-xl md:text-2xl text-gray-300 mb-4">
-              One Universal Truly Interoperable Wallet
+              Solving Cross chain Fragmentation
             </p>
             <p className="text-lg md:text-xl text-gray-400 mb-12">
               Powered by 1inch Fusion Extensions
@@ -89,25 +94,6 @@ export default function HomePage() {
                 <h3 className="text-xl font-bold mb-2">Try Basic Swap</h3>
                 <p className="text-gray-400 text-sm">
                   Swap assets seamlessly across any blockchain
-                </p>
-              </Link>
-
-              <Link
-                href="http://wallet.unite-defi.com"
-                target="_blank"
-                className="group bg-purple-900/20 backdrop-blur-sm border border-purple-800/50 rounded-xl p-6 hover:bg-purple-900/30 hover:border-purple-700 transition-all transform hover:scale-105"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
-                    <Wallet className="w-6 h-6" />
-                  </div>
-                  <span className="text-purple-400 group-hover:translate-x-2 transition-transform">
-                    →
-                  </span>
-                </div>
-                <h3 className="text-xl font-bold mb-2">Universal Wallet</h3>
-                <p className="text-gray-400 text-sm">
-                  Create and manage your cross-chain wallet
                 </p>
               </Link>
 
@@ -167,10 +153,10 @@ export default function HomePage() {
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center">
-                  <img 
-                    src={chain.logo} 
-                    alt={chain.name} 
-                    className="w-10 h-10 object-contain"
+                  <img
+                    src={chain.logo}
+                    alt={chain.name}
+                    className="w-10 h-10 object-contain rounded-full"
                   />
                 </div>
                 <span className="text-sm text-gray-300">{chain.name}</span>
@@ -183,7 +169,7 @@ export default function HomePage() {
             <div className="flex justify-center space-x-4">
               <span className="text-violet-400">Testnet Support</span>
               <span className="text-gray-600">•</span>
-              <span className="text-purple-400">20+ Chains Supported</span>
+              <span className="text-purple-400">26 Chains Supported</span>
               <span className="text-gray-600">•</span>
               <span className="text-pink-400">Truly Interoperable</span>
             </div>
