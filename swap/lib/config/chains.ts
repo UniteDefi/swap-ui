@@ -4,6 +4,9 @@ import {
   polygonAmoy,
   sepolia,
   bscTestnet,
+  optimismSepolia,
+  scrollSepolia,
+  celoAlfajores,
 } from "viem/chains";
 import { defineChain } from "viem";
 
@@ -19,10 +22,10 @@ export const monadTestnet = defineChain({
   },
   rpcUrls: {
     default: {
-      http: ["https://testnet.monad.xyz"],
+      http: ["https://rpc.ankr.com/monad_testnet"],
     },
     public: {
-      http: ["https://testnet.monad.xyz"],
+      http: ["https://rpc.ankr.com/monad_testnet"],
     },
   },
   blockExplorers: {
@@ -65,10 +68,10 @@ export const seiTestnet = defineChain({
   },
   rpcUrls: {
     default: {
-      http: ["https://evm-rpc-arctic-1.sei-apis.com"],
+      http: ["https://sei-testnet.g.alchemy.com/v2/9MExjLYju7RbwL5KDizzG"],
     },
     public: {
-      http: ["https://evm-rpc-arctic-1.sei-apis.com"],
+      http: ["https://sei-testnet.g.alchemy.com/v2/9MExjLYju7RbwL5KDizzG"],
     },
   },
   blockExplorers: {
@@ -77,35 +80,125 @@ export const seiTestnet = defineChain({
   testnet: true,
 });
 
+export const injectiveTestnet = defineChain({
+  id: 11111,
+  name: "Injective Testnet",
+  network: "injective-testnet",
+  nativeCurrency: {
+    decimals: 18,
+    name: "Injective",
+    symbol: "INJ",
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://testnet.sentry.chain.json-rpc.injective.network"],
+    },
+    public: {
+      http: ["https://testnet.sentry.chain.json-rpc.injective.network"],
+    },
+  },
+  blockExplorers: {
+    default: { name: "Explorer", url: "https://testnet.explorer.injective.network" },
+  },
+  testnet: true,
+});
+
+export const auroraTestnet = defineChain({
+  id: 1313161555,
+  name: "Aurora Testnet",
+  network: "aurora-testnet",
+  nativeCurrency: {
+    decimals: 18,
+    name: "ETH",
+    symbol: "ETH",
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://testnet.aurora.dev"],
+    },
+    public: {
+      http: ["https://testnet.aurora.dev"],
+    },
+  },
+  blockExplorers: {
+    default: { name: "Explorer", url: "https://testnet.aurorascan.dev" },
+  },
+  testnet: true,
+});
+
+export const flowTestnet = defineChain({
+  id: 545,
+  name: "Flow Testnet",
+  network: "flow-testnet",
+  nativeCurrency: {
+    decimals: 18,
+    name: "FLOW",
+    symbol: "FLOW",
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://flow-testnet.g.alchemy.com/v2/9MExjLYju7RbwL5KDizzG"],
+    },
+    public: {
+      http: ["https://flow-testnet.g.alchemy.com/v2/9MExjLYju7RbwL5KDizzG"],
+    },
+  },
+  blockExplorers: {
+    default: { name: "Flowscan", url: "https://testnet.flowscan.io" },
+  },
+  testnet: true,
+});
+
+export const unichainSepolia = defineChain({
+  id: 1301,
+  name: "Unichain Sepolia",
+  network: "unichain-sepolia",
+  nativeCurrency: {
+    decimals: 18,
+    name: "ETH",
+    symbol: "ETH",
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://unichain-sepolia.g.alchemy.com/v2/9MExjLYju7RbwL5KDizzG"],
+    },
+    public: {
+      http: ["https://unichain-sepolia.g.alchemy.com/v2/9MExjLYju7RbwL5KDizzG"],
+    },
+  },
+  blockExplorers: {
+    default: { name: "Explorer", url: "https://sepolia.uniscan.xyz" },
+  },
+  testnet: true,
+});
+
 export const supportedChains = [
-  polygonAmoy,
-  arbitrumSepolia,
-  baseSepolia,
-  bscTestnet,
   sepolia,
-  monadTestnet,
-  etherlinkTestnet,
+  baseSepolia,
+  arbitrumSepolia,
+  optimismSepolia,
+  polygonAmoy,
+  scrollSepolia,
+  celoAlfajores,
+  unichainSepolia,
+  flowTestnet,
   seiTestnet,
+  bscTestnet,
+  auroraTestnet,
+  injectiveTestnet,
+  etherlinkTestnet,
+  monadTestnet,
 ] as const;
 
 export const chainConfigs = {
-  [polygonAmoy.id]: {
-    name: "Polygon Amoy",
-    nativeCurrency: {
-      name: "MATIC",
-      symbol: "MATIC",
-      decimals: 18,
-    },
-    blockExplorer: "https://amoy.polygonscan.com",
-  },
-  [arbitrumSepolia.id]: {
-    name: "Arbitrum Sepolia",
+  [sepolia.id]: {
+    name: "Ethereum Sepolia",
     nativeCurrency: {
       name: "ETH",
       symbol: "ETH",
       decimals: 18,
     },
-    blockExplorer: "https://sepolia.arbiscan.io",
+    blockExplorer: "https://sepolia.etherscan.io",
   },
   [baseSepolia.id]: {
     name: "Base Sepolia",
@@ -116,6 +209,78 @@ export const chainConfigs = {
     },
     blockExplorer: "https://sepolia.basescan.org",
   },
+  [arbitrumSepolia.id]: {
+    name: "Arbitrum Sepolia",
+    nativeCurrency: {
+      name: "ETH",
+      symbol: "ETH",
+      decimals: 18,
+    },
+    blockExplorer: "https://sepolia.arbiscan.io",
+  },
+  [optimismSepolia.id]: {
+    name: "Optimism Sepolia",
+    nativeCurrency: {
+      name: "ETH",
+      symbol: "ETH",
+      decimals: 18,
+    },
+    blockExplorer: "https://sepolia-optimism.etherscan.io",
+  },
+  [polygonAmoy.id]: {
+    name: "Polygon Amoy",
+    nativeCurrency: {
+      name: "MATIC",
+      symbol: "MATIC",
+      decimals: 18,
+    },
+    blockExplorer: "https://amoy.polygonscan.com",
+  },
+  [scrollSepolia.id]: {
+    name: "Scroll Sepolia",
+    nativeCurrency: {
+      name: "ETH",
+      symbol: "ETH",
+      decimals: 18,
+    },
+    blockExplorer: "https://sepolia.scrollscan.com",
+  },
+  [celoAlfajores.id]: {
+    name: "Celo Alfajores",
+    nativeCurrency: {
+      name: "CELO",
+      symbol: "CELO",
+      decimals: 18,
+    },
+    blockExplorer: "https://alfajores.celoscan.io",
+  },
+  [unichainSepolia.id]: {
+    name: "Unichain Sepolia",
+    nativeCurrency: {
+      name: "ETH",
+      symbol: "ETH",
+      decimals: 18,
+    },
+    blockExplorer: "https://sepolia.uniscan.xyz",
+  },
+  [flowTestnet.id]: {
+    name: "Flow Testnet",
+    nativeCurrency: {
+      name: "FLOW",
+      symbol: "FLOW",
+      decimals: 18,
+    },
+    blockExplorer: "https://testnet.flowscan.io",
+  },
+  [seiTestnet.id]: {
+    name: "Sei Testnet",
+    nativeCurrency: {
+      name: "SEI",
+      symbol: "SEI",
+      decimals: 18,
+    },
+    blockExplorer: "https://seitrace.com/?chain=arctic-1",
+  },
   [bscTestnet.id]: {
     name: "BNB Testnet",
     nativeCurrency: {
@@ -125,23 +290,23 @@ export const chainConfigs = {
     },
     blockExplorer: "https://testnet.bscscan.com",
   },
-  [sepolia.id]: {
-    name: "Ethereum Sepolia",
+  [auroraTestnet.id]: {
+    name: "Aurora Testnet",
     nativeCurrency: {
       name: "ETH",
       symbol: "ETH",
       decimals: 18,
     },
-    blockExplorer: "https://sepolia.etherscan.io",
+    blockExplorer: "https://testnet.aurorascan.dev",
   },
-  [monadTestnet.id]: {
-    name: "Monad Testnet",
+  [injectiveTestnet.id]: {
+    name: "Injective Testnet",
     nativeCurrency: {
-      name: "Monad",
-      symbol: "MON",
+      name: "INJ",
+      symbol: "INJ",
       decimals: 18,
     },
-    blockExplorer: "https://explorer.testnet.monad.xyz",
+    blockExplorer: "https://testnet.explorer.injective.network",
   },
   [etherlinkTestnet.id]: {
     name: "Etherlink Testnet",
@@ -152,13 +317,13 @@ export const chainConfigs = {
     },
     blockExplorer: "https://testnet-explorer.etherlink.com",
   },
-  [seiTestnet.id]: {
-    name: "Sei Testnet",
+  [monadTestnet.id]: {
+    name: "Monad Testnet",
     nativeCurrency: {
-      name: "Sei",
-      symbol: "SEI",
+      name: "Monad",
+      symbol: "MON",
       decimals: 18,
     },
-    blockExplorer: "https://seitrace.com/?chain=arctic-1",
+    blockExplorer: "https://explorer.testnet.monad.xyz",
   },
 };
