@@ -91,7 +91,7 @@ export default function HomePage() {
                     →
                   </span>
                 </div>
-                <h3 className="text-xl font-bold mb-2">Try Basic Swap</h3>
+                <h3 className="text-xl font-bold mb-2">Try Unite DeFi</h3>
                 <p className="text-gray-400 text-sm">
                   Swap assets seamlessly across any blockchain
                 </p>
@@ -132,6 +132,25 @@ export default function HomePage() {
                 <h3 className="text-xl font-bold mb-2">Documentation</h3>
                 <p className="text-gray-400 text-sm">
                   Learn everything about Unite DeFi protocol
+                </p>
+              </Link>
+
+              <Link
+                href="https://www.canva.com/design/DAGu8bzXpPE/N_SC68Tg0bJe1fldDv2fzg/watch?utm_content=DAGu8bzXpPE&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h1b7111a15d"
+                target="_blank"
+                className="group bg-green-900/20 backdrop-blur-sm border border-green-800/50 rounded-xl p-6 hover:bg-green-900/30 hover:border-green-700 transition-all transform hover:scale-105"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                    <Play className="w-6 h-6" />
+                  </div>
+                  <span className="text-green-400 group-hover:translate-x-2 transition-transform">
+                    →
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold mb-2">Watch Video</h3>
+                <p className="text-gray-400 text-sm">
+                  See Unite DeFi in action with demo video
                 </p>
               </Link>
             </div>
