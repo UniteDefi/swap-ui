@@ -9,6 +9,9 @@ import { nonEvmWalletTypes, nonEvmChains } from "@/lib/config/non_evm_chains";
 import { useAppKit } from "@reown/appkit/react";
 import { chainLogos } from "@/lib/config/chain_logos";
 import Image from "next/image";
+import { useNonEvmWallet } from "@/lib/context/non_evm_wallet_context";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 interface WalletSelectorProps {
   open: boolean;
@@ -17,7 +20,10 @@ interface WalletSelectorProps {
 
 export function WalletSelector({ open, onOpenChange }: WalletSelectorProps) {
   const [selectedWalletType, setSelectedWalletType] = useState<"evm" | "non-evm" | null>(null);
+  const [selectedNonEvmWallet, setSelectedNonEvmWallet] = useState<string | null>(null);
+  const [selectedChainId, setSelectedChainId] = useState<string | null>(null);
   const { open: openAppKit } = useAppKit();
+  const { connect: connectNonEvmWallet, isConnecting } = useNonEvmWallet();
 
   const handleEvmWalletConnect = () => {
     onOpenChange(false);
@@ -26,22 +32,30 @@ export function WalletSelector({ open, onOpenChange }: WalletSelectorProps) {
 
   const handleNonEvmWalletSelect = (walletType: string) => {
     console.log("[WalletSelector] Selected non-EVM wallet type:", walletType);
-    // Show a toast with implementation instructions
-    const walletNames: Record<string, string> = {
-      aptos: "Aptos (Petra, Martian)",
-      sui: "Sui (Sui Wallet, Ethos)",
-      cardano: "Cardano (Nami, Eternl)",
-      stellar: "Stellar (Freighter)",
-      cosmos: "Cosmos (Keplr)",
-      xrpl: "XRPL (Xumm)",
-      ton: "TON (Tonkeeper)",
-      near: "NEAR (NEAR Wallet)",
-      polkadot: "Polkadot (Polkadot.js)",
-      starknet: "Starknet (Argent X)",
-    };
+    setSelectedNonEvmWallet(walletType);
+  };
+  
+  const handleNonEvmConnect = async () => {
+    if (!selectedNonEvmWallet || !selectedChainId) {
+      alert("Please select a chain to connect to");
+      return;
+    }
     
-    alert(`${walletNames[walletType]} wallet integration coming soon! Check WALLET_INTEGRATION.md for implementation details.`);
-    onOpenChange(false);
+    try {
+      await connectNonEvmWallet(selectedNonEvmWallet, selectedChainId);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("[WalletSelector] Error connecting wallet:", error);
+    }
+  };
+  
+  const handleBack = () => {
+    if (selectedNonEvmWallet) {
+      setSelectedNonEvmWallet(null);
+      setSelectedChainId(null);
+    } else {
+      setSelectedWalletType(null);
+    }
   };
 
   return (
@@ -118,7 +132,7 @@ export function WalletSelector({ open, onOpenChange }: WalletSelectorProps) {
               </div>
             )}
             
-            {selectedWalletType === "non-evm" && (
+            {selectedWalletType === "non-evm" && !selectedNonEvmWallet && (
               <div className="space-y-4">
                 <div className="grid gap-2">
                   {nonEvmWalletTypes.map((walletType) => {
@@ -162,10 +176,77 @@ export function WalletSelector({ open, onOpenChange }: WalletSelectorProps) {
                 <Button 
                   variant="outline" 
                   className="w-full"
-                  onClick={() => setSelectedWalletType(null)}
+                  onClick={handleBack}
                 >
                   Back
                 </Button>
+              </div>
+            )}
+            
+            {selectedWalletType === "non-evm" && selectedNonEvmWallet && (
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium mb-3 block">Select Chain</Label>
+                  <RadioGroup
+                    value={selectedChainId || ""}
+                    onValueChange={setSelectedChainId}
+                    className="grid gap-2"
+                  >
+                    {nonEvmWalletTypes
+                      .find(w => w.id === selectedNonEvmWallet)
+                      ?.chains.map(chainId => {
+                        const chain = nonEvmChains.find(c => c.id === chainId);
+                        if (!chain) return null;
+                        
+                        return (
+                          <div key={chain.id} className="relative">
+                            <RadioGroupItem
+                              value={chain.id}
+                              id={chain.id}
+                              className="peer sr-only"
+                            />
+                            <Label
+                              htmlFor={chain.id}
+                              className="flex items-center gap-3 rounded-md border-2 p-3 cursor-pointer transition-all
+                                border-gray-800 hover:border-purple-800 
+                                peer-data-[state=checked]:border-purple-500 peer-data-[state=checked]:bg-purple-950/20"
+                            >
+                              <Image
+                                src={chainLogos[chain.id] || "/logos/ethereum.png"}
+                                alt={chain.name}
+                                width={32}
+                                height={32}
+                                className="rounded-full"
+                              />
+                              <div>
+                                <div className="font-medium">{chain.name}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {chain.nativeCurrency.symbol}
+                                </div>
+                              </div>
+                            </Label>
+                          </div>
+                        );
+                      })}
+                  </RadioGroup>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={handleBack}
+                  >
+                    Back
+                  </Button>
+                  <Button 
+                    className="flex-1"
+                    onClick={handleNonEvmConnect}
+                    disabled={!selectedChainId || isConnecting}
+                  >
+                    {isConnecting ? "Connecting..." : "Connect"}
+                  </Button>
+                </div>
               </div>
             )}
           </TabsContent>
