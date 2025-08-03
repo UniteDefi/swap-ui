@@ -8,7 +8,7 @@ import { useAccount, useBalance } from "wagmi";
 import { ShimmerLoader } from "@/components/ui/shimmer";
 
 export interface Chain {
-  id: number;
+  id: number | string;
   name: string;
   shortName: string;
   logo?: string;
@@ -20,7 +20,7 @@ export interface Token {
   address: string;
   decimals: number;
   logoURI?: string;
-  chainId: number;
+  chainId: number | string;
   chain: Chain;
   coingeckoId?: string;
 }
