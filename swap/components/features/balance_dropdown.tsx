@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search } from "lucide-react";
+import { Search, Coins } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
 import { TokenBalance } from "@/lib/hooks/use_multi_chain_balances";
 import { ShimmerLoader } from "@/components/ui/shimmer";
+import { MintTokensModal } from "./mint_tokens_modal";
 
 interface BalanceDropdownProps {
   balances: TokenBalance[];
@@ -16,6 +18,7 @@ interface BalanceDropdownProps {
 
 export function BalanceDropdown({ balances, totalUsdValue, isLoading }: BalanceDropdownProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [mintModalOpen, setMintModalOpen] = useState(false);
 
   const filteredBalances = useMemo(() => {
     if (!searchQuery) return balances;
@@ -56,14 +59,24 @@ export function BalanceDropdown({ balances, totalUsdValue, isLoading }: BalanceD
           </div>
         </div>
         
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-          <Input
-            placeholder="Search token or chain..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 bg-[#0e0e15] border-gray-800 text-white placeholder:text-gray-600"
-          />
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Input
+              placeholder="Search token or chain..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 bg-[#0e0e15] border-gray-800 text-white placeholder:text-gray-600"
+            />
+          </div>
+          
+          <Button
+            onClick={() => setMintModalOpen(true)}
+            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+          >
+            <Coins className="mr-2 h-4 w-4" />
+            Mint Test Tokens
+          </Button>
         </div>
       </div>
 
@@ -143,6 +156,8 @@ export function BalanceDropdown({ balances, totalUsdValue, isLoading }: BalanceD
           )}
         </div>
       </ScrollArea>
+      
+      <MintTokensModal open={mintModalOpen} onOpenChange={setMintModalOpen} />
     </div>
   );
 }
