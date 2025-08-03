@@ -82,6 +82,8 @@ export async function POST(request: NextRequest) {
 
     // Get detailed market data for multiple tokens
     const idsString = tokenIds.join(",");
+    console.log("[CoinGecko API] Requesting prices for:", idsString);
+    
     const response = await fetch(
       `${COINGECKO_API_URL}/coins/markets?vs_currency=${vsCurrency}&ids=${idsString}&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h`,
       {
@@ -92,7 +94,9 @@ export async function POST(request: NextRequest) {
     );
 
     if (!response.ok) {
-      throw new Error("Failed to fetch market data");
+      const errorText = await response.text();
+      console.error("[CoinGecko API] Response error:", response.status, errorText);
+      throw new Error(`Failed to fetch market data: ${response.status} ${errorText}`);
     }
 
     const data: TokenPrice[] = await response.json();
