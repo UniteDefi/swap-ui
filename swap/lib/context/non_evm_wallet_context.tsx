@@ -64,27 +64,9 @@ export function NonEvmWalletProvider({ children }: { children: ReactNode }) {
           connection = await walletManager.connect();
           break;
         }
-        case "ton": {
-          const { TonWalletManager } = await import("@/lib/wallets/ton_wallet");
-          walletManager = new TonWalletManager();
-          connection = await walletManager.connect();
-          break;
-        }
         case "starknet": {
           const { StarknetWalletManager } = await import("@/lib/wallets/starknet_wallet");
           walletManager = new StarknetWalletManager();
-          connection = await walletManager.connect();
-          break;
-        }
-        case "near": {
-          const { NearWalletManager } = await import("@/lib/wallets/near_wallet");
-          walletManager = new NearWalletManager();
-          connection = await walletManager.connect();
-          break;
-        }
-        case "cardano": {
-          const { CardanoWalletManager } = await import("@/lib/wallets/cardano_wallet");
-          walletManager = new CardanoWalletManager();
           connection = await walletManager.connect();
           break;
         }
@@ -106,10 +88,12 @@ export function NonEvmWalletProvider({ children }: { children: ReactNode }) {
           connection = await walletManager.connect();
           break;
         }
-        case "polkadot": {
-          const { PolkadotWalletManager } = await import("@/lib/wallets/polkadot_wallet");
-          walletManager = new PolkadotWalletManager();
-          connection = await walletManager.connect();
+        case "icp": {
+          const { IcpWalletAdapter } = await import("@/lib/wallets/icp_wallet");
+          const icpWallet = new IcpWalletAdapter();
+          await icpWallet.connect();
+          connection = { address: icpWallet.getAddress() || "", publicKey: "" };
+          walletManager = icpWallet as any;
           break;
         }
         default:
