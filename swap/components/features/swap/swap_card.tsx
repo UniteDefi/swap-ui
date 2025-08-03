@@ -14,9 +14,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { POPULAR_TOKENS } from "@/lib/constants/tokens";
 import { generateSecret, generateSecretHash, storeSecret } from "@/lib/utils/htlc";
 import { useTokenApproval } from "@/lib/hooks/use_token_approval";
+import { useTokenAllowance } from "@/lib/hooks/use_token_allowance";
 import { useSwapStatus } from "@/lib/hooks/use_swap_status";
 import { parseUnits } from "viem";
 import type { CreateSwapRequest } from "@/app/api/create-swap/route";
+import { getEscrowFactoryAddress, isEVMChain } from "@/lib/utils/escrow_factory";
 
 export function SwapCard() {
   const { isConnected, address, chainId } = useAccount();
@@ -37,16 +39,41 @@ export function SwapCard() {
   // Swap status management
   const { status, statusData, updateStatus } = useSwapStatus();
   
-  // Token approval hook - we'll set the escrow address once we get it
+  // Token approval hook for EVM chains
   const {
     approve,
     isSuccess: isApprovalSuccess,
+    isApproving,
   } = useTokenApproval({
     tokenAddress: fromToken?.address as `0x${string}` | undefined,
-    spenderAddress: escrowAddress as `0x${string}` | undefined,
+    chainId: typeof fromToken?.chainId === "number" ? fromToken.chainId : 0,
     amount: fromAmount,
     decimals: fromToken?.decimals || 18
   });
+
+  // Check token allowance for EVM chains
+  const escrowFactoryAddress = fromToken && isEVMChain(fromToken.chainId) 
+    ? getEscrowFactoryAddress(fromToken.chainId) 
+    : null;
+
+  const {
+    allowance,
+    refetch: refetchAllowance,
+  } = useTokenAllowance({
+    tokenAddress: fromToken?.address as `0x${string}` | undefined,
+    ownerAddress: address,
+    spenderAddress: escrowFactoryAddress as `0x${string}` | undefined,
+    decimals: fromToken?.decimals || 18,
+    chainId: typeof fromToken?.chainId === "number" ? fromToken.chainId : 0,
+  });
+
+  // Check if approval is needed
+  const requiredAmount = fromAmount ? parseUnits(fromAmount, fromToken?.decimals || 18) : BigInt(0);
+  const needsApproval = fromToken && 
+    isEVMChain(fromToken.chainId) && 
+    escrowFactoryAddress &&
+    fromAmount &&
+    allowance < requiredAmount;
 
   // Get token prices from CoinGecko
   const tokenIds = [
@@ -125,9 +152,26 @@ export function SwapCard() {
   // Handle approval success
   useEffect(() => {
     if (isApprovalSuccess && status === "approving_token") {
-      updateStatus("waiting_for_relayer");
+      // Refetch allowance to update UI
+      refetchAllowance();
+      updateStatus("idle");
     }
-  }, [isApprovalSuccess, status, updateStatus]);
+  }, [isApprovalSuccess, status, updateStatus, refetchAllowance]);
+
+  // Approval handler
+  const handleApproval = async () => {
+    if (!fromToken || !fromAmount || !address) return;
+
+    try {
+      updateStatus("approving_token");
+      await approve();
+    } catch (error) {
+      console.error("[SwapCard] Approval error:", error);
+      updateStatus("failed", {
+        error: error instanceof Error ? error.message : "Unknown error occurred",
+      });
+    }
+  };
 
   // Main swap handler
   const handleSwap = async () => {
@@ -192,13 +236,6 @@ export function SwapCard() {
         expiryTime: data.expiryTime,
       });
 
-      // Set escrow address for approval
-      setEscrowAddress(data.escrowAddress);
-
-      // Now approve the token
-      updateStatus("approving_token");
-      await approve();
-
     } catch (error) {
       console.error("[SwapCard] Swap error:", error);
       updateStatus("failed", {
@@ -214,6 +251,16 @@ export function SwapCard() {
     if (!fromToken || !toToken) return "Select a token";
     if (!fromAmount) return "Enter an amount";
     if (chainId !== fromToken.chainId) return `Switch to ${fromToken.chain.name}`;
+    
+    // Check if escrow factory is configured for EVM chains
+    if (fromToken && isEVMChain(fromToken.chainId) && !escrowFactoryAddress) {
+      return "Escrow factory not configured";
+    }
+    
+    // Check if approval is needed for EVM chains
+    if (needsApproval) {
+      return `Approve ${fromToken.symbol}`;
+    }
     
     switch (status) {
       case "generating_secret":
@@ -262,7 +309,9 @@ export function SwapCard() {
     !fromAmount || 
     !fromToken || 
     !toToken || 
-    status !== "idle" && status !== "relayer_deposited";
+    (fromToken && isEVMChain(fromToken.chainId) && !escrowFactoryAddress) ||
+    (status !== "idle" && status !== "relayer_deposited") ||
+    isApproving;
 
   return (
     <Card className="w-full backdrop-blur-sm bg-[#1b1b23] shadow-2xl border border-gray-800 relative rounded-2xl">
@@ -348,7 +397,7 @@ export function SwapCard() {
           className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white font-semibold h-14 text-lg rounded-xl transition-all duration-200 shadow-lg shadow-violet-500/25 flex items-center justify-center gap-2" 
           size="lg"
           disabled={isButtonDisabled}
-          onClick={handleSwap}
+          onClick={needsApproval ? handleApproval : handleSwap}
         >
           {getButtonIcon()}
           {getButtonText()}
