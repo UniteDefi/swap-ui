@@ -1,3 +1,5 @@
+import { hasDeployments } from "@/lib/utils/deployment_filter";
+
 export interface NonEvmChain {
   id: string;
   name: string;
@@ -12,7 +14,8 @@ export interface NonEvmChain {
   testnet: boolean;
 }
 
-export const nonEvmChains: NonEvmChain[] = [
+// All available non-EVM chains
+const allNonEvmChains: NonEvmChain[] = [
   {
     id: "aptos-testnet",
     name: "Aptos Testnet",
@@ -37,19 +40,6 @@ export const nonEvmChains: NonEvmChain[] = [
     },
     blockExplorer: "https://suiscan.xyz/testnet",
     walletType: "sui",
-    testnet: true,
-  },
-  {
-    id: "cardano-testnet",
-    name: "Cardano Testnet",
-    network: "cardano-testnet",
-    nativeCurrency: {
-      name: "ADA",
-      symbol: "ADA",
-      decimals: 6,
-    },
-    blockExplorer: "https://preview.cardanoscan.io",
-    walletType: "cardano",
     testnet: true,
   },
   {
@@ -79,19 +69,6 @@ export const nonEvmChains: NonEvmChain[] = [
     testnet: true,
   },
   {
-    id: "secret-testnet",
-    name: "Secret Network Testnet",
-    network: "secret-testnet",
-    nativeCurrency: {
-      name: "Secret",
-      symbol: "SCRT",
-      decimals: 6,
-    },
-    blockExplorer: "https://testnet.mintscan.io/secret-testnet",
-    walletType: "cosmos",
-    testnet: true,
-  },
-  {
     id: "xrpl-testnet",
     name: "XRPL Testnet",
     network: "xrpl-testnet",
@@ -102,45 +79,6 @@ export const nonEvmChains: NonEvmChain[] = [
     },
     blockExplorer: "https://testnet.xrpl.org",
     walletType: "xrpl",
-    testnet: true,
-  },
-  {
-    id: "ton-testnet",
-    name: "TON Testnet",
-    network: "ton-testnet",
-    nativeCurrency: {
-      name: "Toncoin",
-      symbol: "TON",
-      decimals: 9,
-    },
-    blockExplorer: "https://testnet.tonscan.org",
-    walletType: "ton",
-    testnet: true,
-  },
-  {
-    id: "near-testnet",
-    name: "NEAR Testnet",
-    network: "near-testnet",
-    nativeCurrency: {
-      name: "NEAR",
-      symbol: "NEAR",
-      decimals: 24,
-    },
-    blockExplorer: "https://testnet.nearblocks.io",
-    walletType: "near",
-    testnet: true,
-  },
-  {
-    id: "polkadot-testnet",
-    name: "Polkadot Testnet (Westend)",
-    network: "polkadot-testnet",
-    nativeCurrency: {
-      name: "DOT",
-      symbol: "WND",
-      decimals: 12,
-    },
-    blockExplorer: "https://westend.subscan.io",
-    walletType: "polkadot",
     testnet: true,
   },
   {
@@ -156,17 +94,35 @@ export const nonEvmChains: NonEvmChain[] = [
     walletType: "starknet",
     testnet: true,
   },
+  {
+    id: "icp",
+    name: "ICP",
+    network: "icp",
+    nativeCurrency: {
+      name: "ICP",
+      symbol: "ICP",
+      decimals: 8,
+    },
+    blockExplorer: "https://dashboard.internetcomputer.org",
+    walletType: "icp",
+    testnet: true,
+  },
 ];
 
+// Only export chains that have deployments
+export const nonEvmChains: NonEvmChain[] = allNonEvmChains.filter(chain => 
+  hasDeployments(chain.id)
+);
+
+// Filter wallet types to only include those with deployed chains
 export const nonEvmWalletTypes = [
   { id: "aptos", name: "Aptos Wallets", chains: ["aptos-testnet"] },
   { id: "sui", name: "Sui Wallets", chains: ["sui-testnet"] },
-  { id: "cardano", name: "Cardano Wallets", chains: ["cardano-testnet"] },
   { id: "stellar", name: "Stellar Wallets", chains: ["stellar-testnet"] },
-  { id: "cosmos", name: "Cosmos Wallets", chains: ["osmosis-testnet", "secret-testnet"] },
+  { id: "cosmos", name: "Cosmos Wallets", chains: ["osmosis-testnet"] },
   { id: "xrpl", name: "XRPL Wallets", chains: ["xrpl-testnet"] },
-  { id: "ton", name: "TON Wallets", chains: ["ton-testnet"] },
-  { id: "near", name: "NEAR Wallets", chains: ["near-testnet"] },
-  { id: "polkadot", name: "Polkadot Wallets", chains: ["polkadot-testnet"] },
   { id: "starknet", name: "Starknet Wallets", chains: ["starknet-testnet"] },
-];
+  { id: "icp", name: "ICP Wallets", chains: ["icp"] },
+].filter(walletType => 
+  walletType.chains.some(chainId => hasDeployments(chainId))
+);
