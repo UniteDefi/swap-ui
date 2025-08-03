@@ -273,42 +273,6 @@ export class CosmosWalletManager implements CosmosWalletInterface {
           coinDecimals: 18,
         },
       },
-      "secret-4": {
-        chainId: "secret-4",
-        chainName: "Secret Network",
-        rpc: "https://rpc.secret.express",
-        rest: "https://lcd.secret.express",
-        bip44: {
-          coinType: 529,
-        },
-        bech32Config: {
-          bech32PrefixAccAddr: "secret",
-          bech32PrefixAccPub: "secretpub",
-          bech32PrefixValAddr: "secretvaloper",
-          bech32PrefixValPub: "secretvaloperpub",
-          bech32PrefixConsAddr: "secretvalcons",
-          bech32PrefixConsPub: "secretvalconspub",
-        },
-        currencies: [
-          {
-            coinDenom: "SCRT",
-            coinMinimalDenom: "uscrt",
-            coinDecimals: 6,
-          },
-        ],
-        feeCurrencies: [
-          {
-            coinDenom: "SCRT",
-            coinMinimalDenom: "uscrt",
-            coinDecimals: 6,
-          },
-        ],
-        stakeCurrency: {
-          coinDenom: "SCRT",
-          coinMinimalDenom: "uscrt",
-          coinDecimals: 6,
-        },
-      },
       "osmosis-testnet": {
         chainId: "osmo-test-5",
         chainName: "Osmosis Testnet",
@@ -342,42 +306,6 @@ export class CosmosWalletManager implements CosmosWalletInterface {
         stakeCurrency: {
           coinDenom: "OSMO",
           coinMinimalDenom: "uosmo",
-          coinDecimals: 6,
-        },
-      },
-      "secret-testnet": {
-        chainId: "pulsar-3",
-        chainName: "Secret Network Testnet",
-        rpc: "https://rpc.testnet.secretsaturn.net",
-        rest: "https://lcd.testnet.secretsaturn.net",
-        bip44: {
-          coinType: 529,
-        },
-        bech32Config: {
-          bech32PrefixAccAddr: "secret",
-          bech32PrefixAccPub: "secretpub",
-          bech32PrefixValAddr: "secretvaloper",
-          bech32PrefixValPub: "secretvaloperpub",
-          bech32PrefixConsAddr: "secretvalcons",
-          bech32PrefixConsPub: "secretvalconspub",
-        },
-        currencies: [
-          {
-            coinDenom: "SCRT",
-            coinMinimalDenom: "uscrt",
-            coinDecimals: 6,
-          },
-        ],
-        feeCurrencies: [
-          {
-            coinDenom: "SCRT",
-            coinMinimalDenom: "uscrt",
-            coinDecimals: 6,
-          },
-        ],
-        stakeCurrency: {
-          coinDenom: "SCRT",
-          coinMinimalDenom: "uscrt",
           coinDecimals: 6,
         },
       },
