@@ -6,6 +6,7 @@ import { wagmiAdapter } from "@/lib/config/wagmi";
 import { useState, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { NonEvmWalletProvider } from "@/lib/context/non_evm_wallet_context";
+import { MultiWalletProvider } from "@/lib/context/multi_wallet_context";
 
 export function Providers({
   children,
@@ -20,8 +21,10 @@ export function Providers({
     <WagmiProvider config={wagmiAdapter.wagmiConfig} initialState={initialState}>
       <QueryClientProvider client={queryClient}>
         <NonEvmWalletProvider>
-          {children}
-          <Toaster />
+          <MultiWalletProvider>
+            {children}
+            <Toaster />
+          </MultiWalletProvider>
         </NonEvmWalletProvider>
       </QueryClientProvider>
     </WagmiProvider>
