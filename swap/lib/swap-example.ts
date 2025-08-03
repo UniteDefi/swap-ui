@@ -33,7 +33,7 @@ export async function createSwapOrder(
   };
   
   // Sign with EIP-712
-  const { signature, typedData, orderId } = await signHTLCOrder(
+  const { signature, orderId } = await signHTLCOrder(
     signer,
     swapRequest,
     escrowFactoryAddress
