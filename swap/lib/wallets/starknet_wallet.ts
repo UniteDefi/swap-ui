@@ -1,63 +1,135 @@
-import { connect, disconnect, StarknetWindowObject } from "starknetkit";
+// Direct wallet detection without starknetkit modal
+interface StarknetWallet {
+  enable: () => Promise<void>;
+  isConnected: boolean;
+  selectedAddress?: string;
+  account?: {
+    address: string;
+  };
+}
+
+interface StarknetTransaction {
+  type: string;
+  contractAddress: string;
+  entrypoint: string;
+  calldata: string[];
+}
+
+interface StarknetTransactionResult {
+  transactionHash: string;
+}
+
+interface WindowWithStarknet extends Window {
+  starknet_argentX?: StarknetWallet;
+  starknet_braavos?: StarknetWallet;
+  starknet?: StarknetWallet;
+}
 
 export interface StarknetWalletInterface {
   connect: () => Promise<{ address: string; publicKey: string }>;
   disconnect: () => Promise<void>;
   isConnected: () => boolean;
   getBalance: () => Promise<{ amount: string; decimals: number }>;
-  signTransaction: (transaction: any) => Promise<any>;
+  signTransaction: (transaction: StarknetTransaction) => Promise<StarknetTransactionResult>;
 }
 
 export class StarknetWalletManager implements StarknetWalletInterface {
-  private wallet: StarknetWindowObject | null = null;
+  private wallet: StarknetWallet | null = null;
   private address: string | null = null;
   
-  async connect(walletId?: string): Promise<{ address: string; publicKey: string }> {
+  async connect(): Promise<{ address: string; publicKey: string }> {
     console.log("[StarknetWallet] Connecting to Starknet wallet...");
     
     try {
-      // Connect to Starknet wallet
-      const result = await connect({
-        modalMode: walletId ? "neverAsk" : "alwaysAsk",
-        modalTheme: "dark",
-        webWalletUrl: "https://web.argent.xyz",
-        argentMobileOptions: {
-          dappName: "UniteDefi",
-          projectId: "unite-defi",
-          url: "https://unitedefi.com",
-        },
-      });
-      
-      if (!result || !result.wallet) {
-        throw new Error("Failed to connect to Starknet wallet");
+      // Check for Argent X wallet
+      if (typeof window !== "undefined" && (window as WindowWithStarknet).starknet_argentX) {
+        const argentX = (window as WindowWithStarknet).starknet_argentX;
+        
+        if (argentX) {
+          // Enable Argent X
+          await argentX.enable();
+          
+          if (!argentX.isConnected) {
+            throw new Error("Failed to connect to Argent X wallet");
+          }
+          
+          // Get the address
+          const address = argentX.selectedAddress || argentX.account?.address;
+          
+          if (!address) {
+            throw new Error("No address found in Argent X wallet");
+          }
+          
+          this.wallet = argentX;
+          this.address = address;
+          
+          return {
+            address: address,
+            publicKey: "", // Starknet doesn't expose public key directly
+          };
+        }
       }
       
-      this.wallet = result.wallet;
-      
-      // Get the wallet address
-      const wallet = result.wallet;
-      if (!wallet) {
-        throw new Error("No wallet found");
+      // Check for Braavos wallet
+      if (typeof window !== "undefined" && (window as WindowWithStarknet).starknet_braavos) {
+        const braavos = (window as WindowWithStarknet).starknet_braavos;
+        
+        if (braavos) {
+          // Enable Braavos
+          await braavos.enable();
+          
+          if (!braavos.isConnected) {
+            throw new Error("Failed to connect to Braavos wallet");
+          }
+          
+          // Get the address
+          const address = braavos.selectedAddress || braavos.account?.address;
+          
+          if (!address) {
+            throw new Error("No address found in Braavos wallet");
+          }
+          
+          this.wallet = braavos;
+          this.address = address;
+          
+          return {
+            address: address,
+            publicKey: "", // Starknet doesn't expose public key directly
+          };
+        }
       }
       
-      // Enable wallet if needed
-      if (!(wallet as any).isConnected) {
-        await (wallet as any).enable();
+      // Check for generic starknet wallet
+      if (typeof window !== "undefined" && (window as WindowWithStarknet).starknet) {
+        const starknet = (window as WindowWithStarknet).starknet;
+        
+        if (starknet) {
+          // Enable wallet
+          await starknet.enable();
+          
+          if (!starknet.isConnected) {
+            throw new Error("Failed to connect to Starknet wallet");
+          }
+          
+          // Get the address
+          const address = starknet.selectedAddress || starknet.account?.address;
+          
+          if (!address) {
+            throw new Error("No address found in Starknet wallet");
+          }
+          
+          this.wallet = starknet;
+          this.address = address;
+          
+          return {
+            address: address,
+            publicKey: "", // Starknet doesn't expose public key directly
+          };
+        }
       }
       
-      // Get the address from the wallet
-      const address = (wallet as any).selectedAddress || (wallet as any).account?.address;
-      
-      if (!address) {
-        throw new Error("No address found in wallet");
-      }
-      
-      this.address = address;
-      
-      return {
-        address: address,
-        publicKey: "", // Starknet doesn't expose public key directly
-      };
+      const { createWalletNotFoundError } = await import("@/lib/utils/wallet_errors");
+      throw createWalletNotFoundError("Starknet", ["argentX", "braavos"]);
     } catch (error) {
       console.error("[StarknetWallet] Connection error:", error);
       throw error;
@@ -68,7 +140,7 @@ export class StarknetWalletManager implements StarknetWalletInterface {
     console.log("[StarknetWallet] Disconnecting from Starknet wallet...");
     
     try {
-      await disconnect();
+      // Starknet wallets don't have explicit disconnect methods typically
       this.wallet = null;
       this.address = null;
     } catch (error) {
@@ -87,7 +159,7 @@ export class StarknetWalletManager implements StarknetWalletInterface {
     
     try {
       // ETH token address on Starknet testnet
-      const ETH_TOKEN_ADDRESS = "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7";
+      // const ETH_TOKEN_ADDRESS = "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7";
       
       // For now, return a mock balance
       // In a real implementation, you'd use the Starknet SDK to fetch the balance
@@ -106,7 +178,7 @@ export class StarknetWalletManager implements StarknetWalletInterface {
     }
   }
 
-  async signTransaction(transaction: any): Promise<any> {
+  async signTransaction(transaction: StarknetTransaction): Promise<StarknetTransactionResult> {
     if (!this.wallet) {
       throw new Error("Wallet not connected");
     }
@@ -130,7 +202,7 @@ export const detectStarknetWallets = () => {
   const wallets = [];
   
   // Check for Argent X
-  if (typeof window !== "undefined" && (window as any).starknet_argentX) {
+  if (typeof window !== "undefined" && (window as WindowWithStarknet).starknet_argentX) {
     wallets.push({
       name: "Argent X",
       icon: "/logos/starknet.png",
@@ -139,7 +211,7 @@ export const detectStarknetWallets = () => {
   }
   
   // Check for Braavos
-  if (typeof window !== "undefined" && (window as any).starknet_braavos) {
+  if (typeof window !== "undefined" && (window as WindowWithStarknet).starknet_braavos) {
     wallets.push({
       name: "Braavos",
       icon: "/logos/starknet.png",
