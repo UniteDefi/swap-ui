@@ -140,7 +140,7 @@ export function SlippageModal({
           </div>
 
           <div className="text-xs text-gray-400 space-y-1">
-            <p>Slippage tolerance is the maximum price change you're willing to accept.</p>
+            <p>Slippage tolerance is the maximum price change you&apos;re willing to accept.</p>
             <p>Your transaction will revert if the price changes unfavorably by more than this percentage.</p>
           </div>
         </div>
