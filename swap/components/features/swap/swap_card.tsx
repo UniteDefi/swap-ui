@@ -134,8 +134,8 @@ export function SwapCard() {
     if (!fromToken || !toToken || !fromAmount || !address) return;
 
     try {
-      // Check if we need to switch chains
-      if (chainId !== fromToken.chainId) {
+      // Check if we need to switch chains (only for EVM chains)
+      if (typeof fromToken.chainId === "number" && chainId !== fromToken.chainId) {
         updateStatus("idle");
         await switchChain({ chainId: fromToken.chainId });
         return;
@@ -152,8 +152,8 @@ export function SwapCard() {
       updateStatus("creating_order");
       
       const swapRequest: CreateSwapRequest = {
-        sourceChainId: fromToken.chainId,
-        destChainId: toToken.chainId,
+        sourceChainId: typeof fromToken.chainId === "number" ? fromToken.chainId : parseInt(fromToken.chainId.toString()),
+        destChainId: typeof toToken.chainId === "number" ? toToken.chainId : parseInt(toToken.chainId.toString()),
         sourceToken: fromToken.address,
         destToken: toToken.address,
         sourceAmount: parseUnits(fromAmount, fromToken.decimals).toString(),
