@@ -9,10 +9,11 @@ import {
   celoAlfajores,
 } from "viem/chains";
 import { defineChain } from "viem";
+import { hasDeployments } from "@/lib/utils/deployment_filter";
 
 // Define custom chains
 export const monadTestnet = defineChain({
-  id: 41454,
+  id: 10143,
   name: "Monad Testnet",
   network: "monad-testnet",
   nativeCurrency: {
@@ -172,7 +173,8 @@ export const unichainSepolia = defineChain({
   testnet: true,
 });
 
-export const supportedChains = [
+// All available EVM chains
+const allEvmChains = [
   sepolia,
   baseSepolia,
   arbitrumSepolia,
@@ -189,6 +191,21 @@ export const supportedChains = [
   etherlinkTestnet,
   monadTestnet,
 ] as const;
+
+// Filter chains by deployments
+const getDeployedChains = () => {
+  const deployed = allEvmChains.filter(chain => hasDeployments(chain.id));
+  
+  // Always ensure at least one chain is available for development
+  if (deployed.length === 0) {
+    console.warn("[Chains] No deployments found, falling back to Sepolia for development");
+    return [sepolia];
+  }
+  
+  return deployed;
+};
+
+export const supportedChains = getDeployedChains();
 
 export const chainConfigs = {
   [sepolia.id]: {
