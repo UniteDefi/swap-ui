@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useAppKit } from "@reown/appkit/react";
 import { useAccount } from "wagmi";
 import Image from "next/image";
 import { useMultiChainBalances } from "@/lib/hooks/use_multi_chain_balances";
@@ -11,15 +10,13 @@ import { ShimmerLoader } from "@/components/ui/shimmer";
 import { useState } from "react";
 import { OrdersSheet } from "@/components/features/orders_sheet";
 import { Receipt } from "lucide-react";
-import { WalletSelector } from "@/components/features/wallet_selector";
+import { WalletDropdown } from "@/components/features/wallet_dropdown";
 
 export function Header() {
-  const { open } = useAppKit();
   const { address, isConnected } = useAccount();
   const { balances, totalUsdValue, isLoading } = useMultiChainBalances();
   const [balanceDropdownOpen, setBalanceDropdownOpen] = useState(false);
   const [ordersSheetOpen, setOrdersSheetOpen] = useState(false);
-  const [walletSelectorOpen, setWalletSelectorOpen] = useState(false);
   
   const formatUsdValue = (value: number) => {
     if (value < 0.01) return "<$0.01";
@@ -86,21 +83,12 @@ export function Header() {
               </>
             )}
             
-            <Button
-              onClick={() => isConnected ? open() : setWalletSelectorOpen(true)}
-              variant="default"
-              className={`min-w-[140px] ${isConnected ? "bg-gray-800 hover:bg-gray-700" : "bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"} rounded-xl`}
-            >
-              {isConnected && address
-                ? `${address.slice(0, 6)}...${address.slice(-4)}`
-                : "Connect Wallet"}
-            </Button>
+            <WalletDropdown />
           </div>
         </div>
       </div>
       
       <OrdersSheet open={ordersSheetOpen} onOpenChange={setOrdersSheetOpen} />
-      <WalletSelector open={walletSelectorOpen} onOpenChange={setWalletSelectorOpen} />
     </header>
   );
 }
