@@ -1,11 +1,34 @@
 import { TonConnectUI, Wallet } from "@tonconnect/ui-react";
 
+interface TonTransaction {
+  validUntil: number;
+  messages: Array<{
+    address: string;
+    amount: string;
+    payload?: string;
+  }>;
+}
+
+interface TonTransactionResult {
+  boc: string;
+}
+
+interface TonBalanceResponse {
+  result: string;
+}
+
+interface WindowWithTon extends Window {
+  tonkeeper?: unknown;
+  openmask?: unknown;
+  ton?: unknown;
+}
+
 export interface TonWalletInterface {
   connect: () => Promise<{ address: string; publicKey: string }>;
   disconnect: () => Promise<void>;
   isConnected: () => boolean;
   getBalance: () => Promise<{ amount: string; decimals: number }>;
-  signTransaction: (transaction: any) => Promise<any>;
+  signTransaction: (transaction: TonTransaction) => Promise<TonTransactionResult>;
 }
 
 export class TonWalletManager implements TonWalletInterface {
@@ -16,7 +39,8 @@ export class TonWalletManager implements TonWalletInterface {
     // Initialize TON Connect UI
     if (typeof window !== "undefined") {
       this.tonConnectUI = new TonConnectUI({
-        manifestUrl: "https://unite-defi.com/tonconnect-manifest.json"
+        manifestUrl: `${window.location.origin}/tonconnect-manifest.json`,
+        buttonRootId: "ton-connect-button"
       });
     }
   }
@@ -29,11 +53,21 @@ export class TonWalletManager implements TonWalletInterface {
         throw new Error("TON Connect UI not initialized");
       }
       
+      // Check if already connected
+      const currentWallet = this.tonConnectUI.wallet;
+      if (currentWallet) {
+        this.wallet = currentWallet;
+        return {
+          address: currentWallet.account.address,
+          publicKey: currentWallet.account.publicKey || "",
+        };
+      }
+      
       // Connect wallet using TON Connect UI
       const connectedWallet = await this.tonConnectUI.connectWallet();
       
       if (!connectedWallet) {
-        throw new Error("Failed to connect TON wallet");
+        throw new Error("Failed to connect TON wallet. Make sure you have TonKeeper or another TON wallet installed.");
       }
       
       this.wallet = connectedWallet;
@@ -82,7 +116,7 @@ export class TonWalletManager implements TonWalletInterface {
         throw new Error("Failed to fetch balance");
       }
       
-      const data = await response.json();
+      const data: TonBalanceResponse = await response.json();
       const balance = data.result || "0";
       
       return {
@@ -98,7 +132,7 @@ export class TonWalletManager implements TonWalletInterface {
     }
   }
 
-  async signTransaction(transaction: any): Promise<any> {
+  async signTransaction(transaction: TonTransaction): Promise<TonTransactionResult> {
     if (!this.wallet || !this.tonConnectUI) {
       throw new Error("Wallet not connected");
     }
@@ -115,11 +149,12 @@ export class TonWalletManager implements TonWalletInterface {
     }
   }
   
-  private getAvailableWallets(): any[] {
-    const wallets = [];
+  private getAvailableWallets(): Array<{ name: string; available: boolean }> {
+    const wallets: Array<{ name: string; available: boolean }> = [];
+    const windowWithTon = window as WindowWithTon;
     
     // Check for Tonkeeper
-    if (typeof window !== "undefined" && (window as any).tonkeeper) {
+    if (typeof window !== "undefined" && windowWithTon.tonkeeper) {
       wallets.push({
         name: "Tonkeeper",
         available: true,
@@ -127,7 +162,7 @@ export class TonWalletManager implements TonWalletInterface {
     }
     
     // Check for OpenMask
-    if (typeof window !== "undefined" && (window as any).openmask) {
+    if (typeof window !== "undefined" && windowWithTon.openmask) {
       wallets.push({
         name: "OpenMask",
         available: true,
@@ -135,7 +170,7 @@ export class TonWalletManager implements TonWalletInterface {
     }
     
     // Check for TON extension
-    if (typeof window !== "undefined" && (window as any).ton) {
+    if (typeof window !== "undefined" && windowWithTon.ton) {
       wallets.push({
         name: "TON Wallet",
         available: true,
@@ -149,9 +184,10 @@ export class TonWalletManager implements TonWalletInterface {
 // Wallet detection utilities
 export const detectTonWallets = () => {
   const wallets = [];
+  const windowWithTon = window as WindowWithTon;
   
   // Check for Tonkeeper
-  if (typeof window !== "undefined" && ((window as any).tonkeeper || (window as any).ton)) {
+  if (typeof window !== "undefined" && (windowWithTon.tonkeeper || windowWithTon.ton)) {
     wallets.push({
       name: "Tonkeeper",
       icon: "/logos/ton.png",
@@ -160,7 +196,7 @@ export const detectTonWallets = () => {
   }
   
   // Check for OpenMask
-  if (typeof window !== "undefined" && (window as any).openmask) {
+  if (typeof window !== "undefined" && windowWithTon.openmask) {
     wallets.push({
       name: "OpenMask",
       icon: "/logos/ton.png",
