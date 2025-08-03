@@ -1,13 +1,14 @@
 import { setupWalletSelector } from "@near-wallet-selector/core";
 import type { WalletSelector, Wallet } from "@near-wallet-selector/core";
 
-interface NearTransaction {
-  receiverId: string;
-  actions: Array<{
-    type: "FunctionCall" | "Transfer" | "AddKey" | "DeleteKey" | "DeleteAccount" | "CreateAccount" | "DeployContract" | "Stake";
-    params: Record<string, unknown>;
-  }>;
-}
+// NearTransaction interface for future transaction handling
+// interface NearTransaction {
+//   receiverId: string;
+//   actions: Array<{
+//     type: "FunctionCall" | "Transfer" | "AddKey" | "DeleteKey" | "DeleteAccount" | "CreateAccount" | "DeployContract" | "Stake";
+//     params: Record<string, unknown>;
+//   }>;
+// }
 
 interface NearTransactionResult {
   transaction: {
