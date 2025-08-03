@@ -2,7 +2,7 @@ import { Window as KeplrWindow, SignDoc } from "@keplr-wallet/types";
 
 declare global {
   interface Window extends KeplrWindow {
-    // Extending KeplrWindow interface
+    keplr?: KeplrWindow["keplr"];
   }
 }
 
