@@ -8,7 +8,45 @@ interface SuiWallet {
   hasPermissions: (permissions: string[]) => Promise<boolean>;
   requestPermissions: (permissions: string[]) => Promise<boolean>;
   getAccounts: () => Promise<SuiWalletAccount[]>;
-  signAndExecuteTransactionBlock: (input: any) => Promise<any>;
+  signAndExecuteTransactionBlock: (input: SuiTransactionInput) => Promise<SuiTransactionResult>;
+  connect?: () => Promise<{ account: SuiWalletAccount }>;
+}
+
+interface SuiTransactionInput {
+  transactionBlock: unknown;
+  account: SuiWalletAccount;
+}
+
+interface SuiTransactionResult {
+  digest: string;
+  effects: {
+    status: {
+      status: string;
+    };
+    gasUsed: {
+      computationCost: string;
+      storageCost: string;
+    };
+  };
+}
+
+interface SuiBalanceResponse {
+  result: {
+    totalBalance: string;
+    coinType: string;
+  };
+}
+
+interface WindowWithSui extends Window {
+  sui?: SuiWallet;
+  suiet?: SuiWallet;
+  suiWallet?: SuiWallet;
+  ethosWallet?: SuiWallet;
+  martian?: {
+    sui?: SuiWallet & {
+      connect: () => Promise<{ address: string; publicKey?: string }>;
+    };
+  };
 }
 
 export interface SuiWalletInterface {
@@ -16,7 +54,7 @@ export interface SuiWalletInterface {
   disconnect: () => Promise<void>;
   isConnected: () => boolean;
   getBalance: () => Promise<{ amount: string; decimals: number }>;
-  signTransaction: (transaction: any) => Promise<any>;
+  signTransaction: (transaction: unknown) => Promise<SuiTransactionResult>;
 }
 
 export class SuiWalletManager implements SuiWalletInterface {
@@ -27,54 +65,135 @@ export class SuiWalletManager implements SuiWalletInterface {
     console.log("[SuiWallet] Connecting to Sui wallet...");
     
     try {
-      // Check for Sui Wallet
-      if (typeof window !== "undefined" && (window as any).suiWallet) {
-        const suiWallet = (window as any).suiWallet;
+      // Check for modern Sui Wallet (window.sui)
+      if (typeof window !== "undefined" && (window as WindowWithSui).sui) {
+        const suiWallet = (window as WindowWithSui).sui;
         
-        // Request permissions
-        const hasPermissions = await suiWallet.hasPermissions(['viewAccount']);
-        
-        if (!hasPermissions) {
-          await suiWallet.requestPermissions(['viewAccount']);
+        if (suiWallet) {
+          // Request permissions
+          const hasPermissions = await suiWallet.hasPermissions(['viewAccount']);
+          
+          if (!hasPermissions) {
+            await suiWallet.requestPermissions(['viewAccount']);
+          }
+          
+          // Get accounts
+          const accounts = await suiWallet.getAccounts();
+          
+          if (!accounts || accounts.length === 0) {
+            throw new Error("No accounts found in Sui wallet");
+          }
+          
+          this.wallet = suiWallet;
+          this.account = accounts[0];
+          
+          return {
+            address: accounts[0].address,
+            publicKey: accounts[0].publicKey || "",
+          };
         }
+      }
+      
+      // Check for Suiet Wallet
+      if (typeof window !== "undefined" && (window as WindowWithSui).suiet) {
+        const suietWallet = (window as WindowWithSui).suiet;
         
-        // Get accounts
-        const accounts = await suiWallet.getAccounts();
-        
-        if (!accounts || accounts.length === 0) {
-          throw new Error("No accounts found in Sui wallet");
+        if (suietWallet) {
+          // Connect to Suiet
+          const connection = await suietWallet.connect?.();
+          
+          if (!connection || !connection.account) {
+            throw new Error("Failed to connect to Suiet wallet");
+          }
+          
+          this.wallet = suietWallet;
+          this.account = connection.account;
+          
+          return {
+            address: connection.account.address,
+            publicKey: connection.account.publicKey || "",
+          };
         }
+      }
+      
+      // Check for legacy Sui Wallet (window.suiWallet)
+      if (typeof window !== "undefined" && (window as WindowWithSui).suiWallet) {
+        const suiWallet = (window as WindowWithSui).suiWallet;
         
-        this.wallet = suiWallet;
-        this.account = accounts[0];
-        
-        return {
-          address: accounts[0].address,
-          publicKey: accounts[0].publicKey || "",
-        };
+        if (suiWallet) {
+          // Request permissions
+          const hasPermissions = await suiWallet.hasPermissions(['viewAccount']);
+          
+          if (!hasPermissions) {
+            await suiWallet.requestPermissions(['viewAccount']);
+          }
+          
+          // Get accounts
+          const accounts = await suiWallet.getAccounts();
+          
+          if (!accounts || accounts.length === 0) {
+            throw new Error("No accounts found in Sui wallet");
+          }
+          
+          this.wallet = suiWallet;
+          this.account = accounts[0];
+          
+          return {
+            address: accounts[0].address,
+            publicKey: accounts[0].publicKey || "",
+          };
+        }
       }
       
       // Check for Ethos Wallet
-      if (typeof window !== "undefined" && (window as any).ethosWallet) {
-        const ethosWallet = (window as any).ethosWallet;
+      if (typeof window !== "undefined" && (window as WindowWithSui).ethosWallet) {
+        const ethosWallet = (window as WindowWithSui).ethosWallet;
         
-        // Connect to Ethos
-        const accounts = await ethosWallet.getAccounts();
-        
-        if (!accounts || accounts.length === 0) {
-          throw new Error("No accounts found in Ethos wallet");
+        if (ethosWallet) {
+          // Connect to Ethos
+          const accounts = await ethosWallet.getAccounts();
+          
+          if (!accounts || accounts.length === 0) {
+            throw new Error("No accounts found in Ethos wallet");
+          }
+          
+          this.wallet = ethosWallet;
+          this.account = accounts[0];
+          
+          return {
+            address: accounts[0].address,
+            publicKey: accounts[0].publicKey || "",
+          };
         }
-        
-        this.wallet = ethosWallet;
-        this.account = accounts[0];
-        
-        return {
-          address: accounts[0].address,
-          publicKey: accounts[0].publicKey || "",
-        };
       }
       
-      throw new Error("No Sui wallet found. Please install Sui Wallet or Ethos.");
+      // Check for Martian Wallet (supports Sui)
+      if (typeof window !== "undefined" && (window as WindowWithSui).martian?.sui) {
+        const martianSui = (window as WindowWithSui).martian?.sui;
+        
+        if (martianSui) {
+          // Connect to Martian
+          const connection = await martianSui.connect();
+          
+          if (!connection || !('address' in connection) || !connection.address) {
+            throw new Error("Failed to connect to Martian wallet");
+          }
+          
+          this.wallet = martianSui;
+          this.account = { 
+            address: connection.address as string, 
+            publicKey: ('publicKey' in connection ? connection.publicKey as string : undefined)
+          };
+          
+          return {
+            address: connection.address as string,
+            publicKey: ('publicKey' in connection ? connection.publicKey as string : "") || "",
+          };
+        }
+      }
+      
+      const { createWalletNotFoundError } = await import("@/lib/utils/wallet_errors");
+      throw createWalletNotFoundError("Sui", ["sui", "suiet", "ethos", "martian"]);
     } catch (error) {
       console.error("[SuiWallet] Connection error:", error);
       throw error;
@@ -121,7 +240,7 @@ export class SuiWalletManager implements SuiWalletInterface {
         throw new Error("Failed to fetch balance");
       }
       
-      const data = await response.json();
+      const data: SuiBalanceResponse = await response.json();
       const balance = data.result?.totalBalance || "0";
       
       return {
@@ -137,7 +256,7 @@ export class SuiWalletManager implements SuiWalletInterface {
     }
   }
 
-  async signTransaction(transaction: any): Promise<any> {
+  async signTransaction(transaction: unknown): Promise<SuiTransactionResult> {
     if (!this.wallet || !this.account) {
       throw new Error("Wallet not connected");
     }
@@ -158,27 +277,28 @@ export class SuiWalletManager implements SuiWalletInterface {
     }
   }
   
-  private getAvailableWallets(): any[] {
-    const wallets = [];
+  private getAvailableWallets(): SuiWallet[] {
+    const wallets: SuiWallet[] = [];
+    const windowWithSui = window as WindowWithSui;
     
     // Check for Sui Wallet
-    if (typeof window !== "undefined" && (window as any).suiWallet) {
-      wallets.push((window as any).suiWallet);
+    if (typeof window !== "undefined" && windowWithSui.suiWallet) {
+      wallets.push(windowWithSui.suiWallet);
     }
     
     // Check for Ethos Wallet
-    if (typeof window !== "undefined" && (window as any).ethosWallet) {
-      wallets.push((window as any).ethosWallet);
+    if (typeof window !== "undefined" && windowWithSui.ethosWallet) {
+      wallets.push(windowWithSui.ethosWallet);
     }
     
     // Check for Martian Wallet (supports Sui)
-    if (typeof window !== "undefined" && (window as any).martian?.sui) {
-      wallets.push((window as any).martian.sui);
+    if (typeof window !== "undefined" && windowWithSui.martian?.sui) {
+      wallets.push(windowWithSui.martian.sui);
     }
     
     // Check for Suiet Wallet
-    if (typeof window !== "undefined" && (window as any).suiet) {
-      wallets.push((window as any).suiet);
+    if (typeof window !== "undefined" && windowWithSui.suiet) {
+      wallets.push(windowWithSui.suiet);
     }
     
     return wallets;
@@ -188,9 +308,10 @@ export class SuiWalletManager implements SuiWalletInterface {
 // Wallet detection utilities
 export const detectSuiWallets = () => {
   const wallets = [];
+  const windowWithSui = window as WindowWithSui;
   
   // Check for Sui Wallet
-  if (typeof window !== "undefined" && (window as any).suiWallet) {
+  if (typeof window !== "undefined" && windowWithSui.suiWallet) {
     wallets.push({
       name: "Sui Wallet",
       icon: "/logos/sui.png",
@@ -199,7 +320,7 @@ export const detectSuiWallets = () => {
   }
   
   // Check for Ethos Wallet
-  if (typeof window !== "undefined" && (window as any).ethosWallet) {
+  if (typeof window !== "undefined" && windowWithSui.ethosWallet) {
     wallets.push({
       name: "Ethos",
       icon: "/logos/sui.png",
@@ -208,7 +329,7 @@ export const detectSuiWallets = () => {
   }
   
   // Check for Martian Wallet (supports Sui)
-  if (typeof window !== "undefined" && (window as any).martian?.sui) {
+  if (typeof window !== "undefined" && windowWithSui.martian?.sui) {
     wallets.push({
       name: "Martian",
       icon: "/logos/sui.png",
@@ -217,7 +338,7 @@ export const detectSuiWallets = () => {
   }
   
   // Check for Suiet Wallet
-  if (typeof window !== "undefined" && (window as any).suiet) {
+  if (typeof window !== "undefined" && windowWithSui.suiet) {
     wallets.push({
       name: "Suiet",
       icon: "/logos/sui.png",
