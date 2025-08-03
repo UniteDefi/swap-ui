@@ -40,15 +40,15 @@ export const WALLET_INSTALL_URLS: Record<string, WalletInstallInfo> = {
     downloadUrl: "https://chrome.google.com/webstore/detail/freighter/bcacfldlkkdogcmkkibnjlakofdplcbk",
     description: "Official Stellar wallet"
   },
-  tonkeeper: {
-    name: "TonKeeper",
-    downloadUrl: "https://tonkeeper.com/",
-    description: "Popular TON wallet"
-  },
   martian: {
     name: "Martian Wallet",
     downloadUrl: "https://chrome.google.com/webstore/detail/martian-aptos-wallet/efbglgofoippbgcjepnhiblaibcnclgk",
     description: "Multi-chain wallet supporting multiple networks"
+  },
+  plug: {
+    name: "Plug Wallet",
+    downloadUrl: "https://plugwallet.ooo/",
+    description: "ICP wallet for Internet Computer"
   }
 };
 
