@@ -59,7 +59,7 @@ export function TokenInput({
     <div className="rounded-xl bg-[#0e0e15] p-4 transition-all hover:bg-[#15151f]">
       <div className="flex justify-between mb-3">
         <span className="text-xs text-gray-500">{label === "From" ? "You pay" : "You receive"}</span>
-        {address && (
+        {address && selectedToken && (
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-500">Balance: {displayBalance}</span>
             {label === "From" && (
