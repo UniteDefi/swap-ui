@@ -1,8 +1,37 @@
 import { Window as KeplrWindow } from "@keplr-wallet/types";
-import { useAccount, useConnect, useDisconnect } from "graz";
 
 declare global {
-  interface Window extends KeplrWindow {}
+  interface Window extends KeplrWindow {
+    // Extending KeplrWindow interface
+  }
+}
+
+interface CosmosBalance {
+  denom: string;
+  amount: string;
+}
+
+interface CosmosBalanceResponse {
+  balances: CosmosBalance[];
+}
+
+interface SignDoc {
+  bodyBytes: Uint8Array;
+  authInfoBytes: Uint8Array;
+  chainId: string;
+  accountNumber: bigint;
+}
+
+interface CosmosTransaction {
+  signDoc: SignDoc;
+}
+
+interface CosmosSignedTransaction {
+  signed: SignDoc;
+  signature: {
+    pub_key: unknown;
+    signature: string;
+  };
 }
 
 export interface CosmosWalletInterface {
@@ -10,7 +39,7 @@ export interface CosmosWalletInterface {
   disconnect: () => Promise<void>;
   isConnected: () => boolean;
   getBalance: () => Promise<{ amount: string; decimals: number }>;
-  signTransaction: (transaction: any) => Promise<any>;
+  signTransaction: (transaction: CosmosTransaction) => Promise<CosmosSignedTransaction>;
 }
 
 export class CosmosWalletManager implements CosmosWalletInterface {
@@ -27,7 +56,8 @@ export class CosmosWalletManager implements CosmosWalletInterface {
     try {
       // Check if Keplr is available
       if (!window.keplr) {
-        throw new Error("Keplr wallet not found. Please install Keplr extension.");
+        const { createWalletNotFoundError } = await import("@/lib/utils/wallet_errors");
+        throw createWalletNotFoundError("Cosmos", ["keplr"]);
       }
       
       // Suggest chain to Keplr if it's not already added
@@ -87,8 +117,8 @@ export class CosmosWalletManager implements CosmosWalletInterface {
         throw new Error("Failed to fetch balance");
       }
       
-      const data = await response.json();
-      const balance = data.balances?.find((b: any) => b.denom === denom);
+      const data: CosmosBalanceResponse = await response.json();
+      const balance = data.balances?.find((b: CosmosBalance) => b.denom === denom);
       
       return {
         amount: balance?.amount || "0",
@@ -103,7 +133,7 @@ export class CosmosWalletManager implements CosmosWalletInterface {
     }
   }
 
-  async signTransaction(transaction: any): Promise<any> {
+  async signTransaction(transaction: CosmosTransaction): Promise<CosmosSignedTransaction> {
     if (!this.address || !window.keplr) {
       throw new Error("Wallet not connected");
     }
@@ -144,7 +174,40 @@ export class CosmosWalletManager implements CosmosWalletInterface {
   
   private async getChainInfo() {
     // Chain configurations for different Cosmos chains
-    const chainConfigs: Record<string, any> = {
+    interface ChainConfig {
+      chainId: string;
+      chainName: string;
+      rpc: string;
+      rest: string;
+      bip44: {
+        coinType: number;
+      };
+      bech32Config: {
+        bech32PrefixAccAddr: string;
+        bech32PrefixAccPub: string;
+        bech32PrefixValAddr: string;
+        bech32PrefixValPub: string;
+        bech32PrefixConsAddr: string;
+        bech32PrefixConsPub: string;
+      };
+      currencies: Array<{
+        coinDenom: string;
+        coinMinimalDenom: string;
+        coinDecimals: number;
+      }>;
+      feeCurrencies: Array<{
+        coinDenom: string;
+        coinMinimalDenom: string;
+        coinDecimals: number;
+      }>;
+      stakeCurrency: {
+        coinDenom: string;
+        coinMinimalDenom: string;
+        coinDecimals: number;
+      };
+    }
+    
+    const chainConfigs: Record<string, ChainConfig> = {
       "osmosis-1": {
         chainId: "osmosis-1",
         chainName: "Osmosis",
@@ -253,9 +316,85 @@ export class CosmosWalletManager implements CosmosWalletInterface {
           coinDecimals: 6,
         },
       },
+      "osmosis-testnet": {
+        chainId: "osmo-test-5",
+        chainName: "Osmosis Testnet",
+        rpc: "https://rpc.testnet.osmosis.zone",
+        rest: "https://lcd.testnet.osmosis.zone",
+        bip44: {
+          coinType: 118,
+        },
+        bech32Config: {
+          bech32PrefixAccAddr: "osmo",
+          bech32PrefixAccPub: "osmopub",
+          bech32PrefixValAddr: "osmovaloper",
+          bech32PrefixValPub: "osmovaloperpub",
+          bech32PrefixConsAddr: "osmovalcons",
+          bech32PrefixConsPub: "osmovalconspub",
+        },
+        currencies: [
+          {
+            coinDenom: "OSMO",
+            coinMinimalDenom: "uosmo",
+            coinDecimals: 6,
+          },
+        ],
+        feeCurrencies: [
+          {
+            coinDenom: "OSMO",
+            coinMinimalDenom: "uosmo",
+            coinDecimals: 6,
+          },
+        ],
+        stakeCurrency: {
+          coinDenom: "OSMO",
+          coinMinimalDenom: "uosmo",
+          coinDecimals: 6,
+        },
+      },
+      "secret-testnet": {
+        chainId: "pulsar-3",
+        chainName: "Secret Network Testnet",
+        rpc: "https://rpc.testnet.secretsaturn.net",
+        rest: "https://lcd.testnet.secretsaturn.net",
+        bip44: {
+          coinType: 529,
+        },
+        bech32Config: {
+          bech32PrefixAccAddr: "secret",
+          bech32PrefixAccPub: "secretpub",
+          bech32PrefixValAddr: "secretvaloper",
+          bech32PrefixValPub: "secretvaloperpub",
+          bech32PrefixConsAddr: "secretvalcons",
+          bech32PrefixConsPub: "secretvalconspub",
+        },
+        currencies: [
+          {
+            coinDenom: "SCRT",
+            coinMinimalDenom: "uscrt",
+            coinDecimals: 6,
+          },
+        ],
+        feeCurrencies: [
+          {
+            coinDenom: "SCRT",
+            coinMinimalDenom: "uscrt",
+            coinDecimals: 6,
+          },
+        ],
+        stakeCurrency: {
+          coinDenom: "SCRT",
+          coinMinimalDenom: "uscrt",
+          coinDecimals: 6,
+        },
+      },
     };
     
-    return chainConfigs[this.chainId] || chainConfigs["osmosis-1"];
+    const config = chainConfigs[this.chainId];
+    if (!config) {
+      throw new Error(`There is no modular chain info for ${this.chainId}. Please contact support.`);
+    }
+    return config;
   }
 }
 
@@ -273,7 +412,7 @@ export const detectCosmosWallets = () => {
   }
   
   // Check for Leap wallet
-  if (typeof window !== "undefined" && (window as any).leap) {
+  if (typeof window !== "undefined" && (window as unknown as { leap?: unknown }).leap) {
     wallets.push({
       name: "Leap",
       icon: "/logos/osmosis.png",
