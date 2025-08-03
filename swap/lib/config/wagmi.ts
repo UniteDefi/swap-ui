@@ -32,8 +32,8 @@ const metadata = {
   icons: ["https://unitedefi.com/icon.png"],
 };
 
-// Configure chains with custom RPC URLs
-const chains = supportedChains;
+// Configure chains with custom RPC URLs - ensure we always have at least one chain
+const chains = supportedChains.length > 0 ? supportedChains : [sepolia];
 
 const transports = {
   [sepolia.id]: http(`https://eth-sepolia.g.alchemy.com/v2/${alchemyApiKey}`),
@@ -62,7 +62,7 @@ export const wagmiAdapter = new WagmiAdapter({
 
 createAppKit({
   adapters: [wagmiAdapter],
-  networks: [...chains],
+  networks: [...chains] as any,
   projectId,
   metadata,
   features: {
