@@ -9,12 +9,37 @@ interface InjectedAccountWithMeta {
   };
 }
 
+interface PolkadotAccountInfo {
+  data: {
+    free: {
+      toString: () => string;
+    };
+    reserved: {
+      toString: () => string;
+    };
+  };
+  nonce: number;
+}
+
+interface PolkadotTransaction {
+  signAsync: (
+    address: string,
+    options: { signer: unknown }
+  ) => Promise<{
+    signature: string;
+    signedTransaction: string;
+  }>;
+}
+
 export interface PolkadotWalletInterface {
   connect: () => Promise<{ address: string; publicKey: string }>;
   disconnect: () => Promise<void>;
   isConnected: () => boolean;
   getBalance: () => Promise<{ amount: string; decimals: number }>;
-  signTransaction: (transaction: any) => Promise<any>;
+  signTransaction: (transaction: PolkadotTransaction) => Promise<{
+    signature: string;
+    signedTransaction: string;
+  }>;
 }
 
 export class PolkadotWalletManager implements PolkadotWalletInterface {
@@ -76,10 +101,10 @@ export class PolkadotWalletManager implements PolkadotWalletInterface {
     
     try {
       // Query account balance
-      const accountInfo = await this.api.query.system.account(this.account.address);
+      const accountInfo = await this.api.query.system.account(this.account.address) as unknown as PolkadotAccountInfo;
       
       // Get free balance
-      const balance = (accountInfo as any).data.free.toString();
+      const balance = accountInfo.data.free.toString();
       
       return {
         amount: balance,
@@ -94,7 +119,10 @@ export class PolkadotWalletManager implements PolkadotWalletInterface {
     }
   }
 
-  async signTransaction(transaction: any): Promise<any> {
+  async signTransaction(transaction: PolkadotTransaction): Promise<{
+    signature: string;
+    signedTransaction: string;
+  }> {
     if (!this.account) {
       throw new Error("Wallet not connected");
     }
@@ -139,8 +167,14 @@ export const detectPolkadotWallets = (): Array<{name: string; icon: string; adap
   
   if (typeof window === "undefined") return wallets;
   
+  interface InjectedWeb3 {
+    [key: string]: unknown;
+  }
+  
+  const injectedWeb3 = (window as unknown as { injectedWeb3?: InjectedWeb3 }).injectedWeb3;
+  
   // Check for Polkadot.js extension
-  if ((window as any).injectedWeb3?.["polkadot-js"]) {
+  if (injectedWeb3?.["polkadot-js"]) {
     wallets.push({
       name: "Polkadot.js",
       icon: "/logos/polkadot.png",
@@ -149,7 +183,7 @@ export const detectPolkadotWallets = (): Array<{name: string; icon: string; adap
   }
   
   // Check for Talisman wallet
-  if ((window as any).injectedWeb3?.talisman) {
+  if (injectedWeb3?.talisman) {
     wallets.push({
       name: "Talisman",
       icon: "/logos/polkadot.png",
@@ -158,7 +192,7 @@ export const detectPolkadotWallets = (): Array<{name: string; icon: string; adap
   }
   
   // Check for SubWallet
-  if ((window as any).injectedWeb3?.subwallet) {
+  if (injectedWeb3?.subwallet) {
     wallets.push({
       name: "SubWallet",
       icon: "/logos/polkadot.png",
