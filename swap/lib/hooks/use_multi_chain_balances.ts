@@ -33,16 +33,46 @@ export function useMultiChainBalances() {
   const chainIds = [...new Set(POPULAR_TOKENS.map(token => token.chainId))];
   
   // Get native token balances for each chain
-  const nativeBalances = chainIds.map(chainId => {
-    const { data: balance } = useBalance({
-      address,
-      chainId,
-      query: {
-        enabled: !!address && isConnected,
-      },
-    });
-    return { chainId, balance };
+  // Note: We need to call useBalance for each chain separately at the top level
+  const ethereumBalance = useBalance({
+    address,
+    chainId: 1, // Ethereum
+    query: {
+      enabled: !!address && isConnected && chainIds.includes(1),
+    },
   });
+  
+  const polygonBalance = useBalance({
+    address,
+    chainId: 137, // Polygon
+    query: {
+      enabled: !!address && isConnected && chainIds.includes(137),
+    },
+  });
+  
+  const bscBalance = useBalance({
+    address,
+    chainId: 56, // BSC
+    query: {
+      enabled: !!address && isConnected && chainIds.includes(56),
+    },
+  });
+  
+  const arbitrumBalance = useBalance({
+    address,
+    chainId: 42161, // Arbitrum
+    query: {
+      enabled: !!address && isConnected && chainIds.includes(42161),
+    },
+  });
+
+  // Collect all balance results
+  const nativeBalances = [
+    { chainId: 1, balance: ethereumBalance.data },
+    { chainId: 137, balance: polygonBalance.data },
+    { chainId: 56, balance: bscBalance.data },
+    { chainId: 42161, balance: arbitrumBalance.data },
+  ].filter(item => chainIds.includes(item.chainId));
 
   // Prepare contract reads for all ERC20 tokens
   const contractReads = POPULAR_TOKENS
