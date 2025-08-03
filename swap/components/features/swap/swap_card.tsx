@@ -7,7 +7,7 @@ import { TokenInput, type Token } from "./token_input";
 import { TokenSelectorDialog } from "./token_selector_dialog";
 import { PriceInfo } from "./price_info";
 import { SlippageModal } from "./slippage_modal";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useAccount, useSwitchChain } from "wagmi";
 import { useTokenPrices } from "@/lib/hooks/use_token_prices";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -35,14 +35,12 @@ export function SwapCard() {
   const [escrowAddress, setEscrowAddress] = useState<string | null>(null);
   
   // Swap status management
-  const { status, statusData, updateStatus, resetStatus } = useSwapStatus();
+  const { status, statusData, updateStatus } = useSwapStatus();
   
   // Token approval hook - we'll set the escrow address once we get it
   const {
     approve,
-    isApproving,
     isSuccess: isApprovalSuccess,
-    hash: approvalHash
   } = useTokenApproval({
     tokenAddress: fromToken?.address as `0x${string}` | undefined,
     spenderAddress: escrowAddress as `0x${string}` | undefined,
@@ -339,7 +337,6 @@ export function SwapCard() {
             isDutchAuction={false}
             auctionEndTime={Date.now() + 180000}
             slippage={slippage}
-            fromAmount={parseFloat(fromAmount)}
             toAmount={parseFloat(calculatedToAmount)}
             fromTokenPrice={fromTokenPrice}
             toTokenPrice={toTokenPrice}
