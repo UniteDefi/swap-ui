@@ -1,0 +1,184 @@
+{
+  "11155111": {
+    "chainName": "Ethereum Sepolia",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "84532": {
+    "chainName": "Base Sepolia",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "421614": {
+    "chainName": "Arbitrum Sepolia",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "11155420": {
+    "chainName": "Optimism Sepolia",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "80002": {
+    "chainName": "Polygon Amoy",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "534351": {
+    "chainName": "Scroll Sepolia",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "44787": {
+    "chainName": "Celo Alfajores",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "1301": {
+    "chainName": "Unichain Sepolia",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "545": {
+    "chainName": "Flow Testnet",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "713715": {
+    "chainName": "Sei Testnet",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "97": {
+    "chainName": "BNB Testnet",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "1313161555": {
+    "chainName": "Aurora Testnet",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "11111": {
+    "chainName": "Injective Testnet",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "128123": {
+    "chainName": "Etherlink Testnet",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "41454": {
+    "chainName": "Monad Testnet",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "aptos-testnet": {
+    "chainName": "Aptos Testnet",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "sui-testnet": {
+    "chainName": "Sui Testnet",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "cardano-testnet": {
+    "chainName": "Cardano Testnet",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "stellar-testnet": {
+    "chainName": "Stellar Testnet",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "osmosis-testnet": {
+    "chainName": "Osmosis Testnet",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "secret-testnet": {
+    "chainName": "Secret Network Testnet",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "xrpl-testnet": {
+    "chainName": "XRPL Testnet",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "ton-testnet": {
+    "chainName": "TON Testnet",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "near-testnet": {
+    "chainName": "NEAR Testnet",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "polkadot-testnet": {
+    "chainName": "Polkadot Testnet (Westend)",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  },
+  "starknet-testnet": {
+    "chainName": "Starknet Testnet",
+    "escrowFactoryAddress": "",
+    "mockUsdtAddress": "",
+    "mockDaiAddress": "",
+    "mockWrappedNativeAddress": ""
+  }
+}
