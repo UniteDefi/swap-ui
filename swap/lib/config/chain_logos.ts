@@ -16,20 +16,16 @@ export const chainLogos: Record<string | number, string> = {
   1313161555: "/logos/aurora.jpg", // Aurora Testnet
   11111: "/logos/injective.png", // Injective Testnet
   128123: "/logos/etherlink.png", // Etherlink Testnet
-  41454: "/logos/monad.png", // Monad Testnet
+  10143: "/logos/monad.png", // Monad Testnet
   
   // Non-EVM Chains
   "aptos-testnet": "/logos/aptos.png",
   "sui-testnet": "/logos/sui.png",
-  "cardano-testnet": "/logos/cardano.png",
   "stellar-testnet": "/logos/stellar.png",
   "osmosis-testnet": "/logos/osmosis.png",
-  "secret-testnet": "/logos/secret.png",
   "xrpl-testnet": "/logos/xrpl.png",
-  "ton-testnet": "/logos/ton.png",
-  "near-testnet": "/logos/near.png",
-  "polkadot-testnet": "/logos/polkadot.png",
   "starknet-testnet": "/logos/starknet.png",
+  "icp": "/logos/icp.png",
 };
 
 // Chain names for display
@@ -49,18 +45,14 @@ export const chainNames: Record<string | number, string> = {
   1313161555: "Aurora Testnet",
   11111: "Injective Testnet",
   128123: "Etherlink Testnet",
-  41454: "Monad Testnet",
+  10143: "Monad Testnet",
   
   // Non-EVM Chains
   "aptos-testnet": "Aptos Testnet",
   "sui-testnet": "Sui Testnet",
-  "cardano-testnet": "Cardano Testnet",
   "stellar-testnet": "Stellar Testnet",
-  "osmosis-testnet": "Osmosis Testnet",
-  "secret-testnet": "Secret Network",
+  "osmosis-testnet": "Osmosis",
   "xrpl-testnet": "XRPL Testnet",
-  "ton-testnet": "TON Testnet",
-  "near-testnet": "NEAR Testnet",
-  "polkadot-testnet": "Polkadot Testnet",
   "starknet-testnet": "Starknet Testnet",
+  "icp": "ICP",
 };
