@@ -13,7 +13,6 @@ import Image from "next/image";
 import { Token } from "./token_input";
 import { POPULAR_TOKENS, TOKENS_BY_SYMBOL } from "@/lib/constants/tokens";
 
-
 interface TokenSelectorDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -21,7 +20,7 @@ interface TokenSelectorDialogProps {
 }
 
 // Popular token symbols to show as quick select buttons
-const QUICK_SELECT_TOKENS = ["ETH", "USDC", "USDT", "WETH", "UNI", "WBTC", "BNB", "1INCH"];
+const QUICK_SELECT_TOKENS = ["USDT", "DAI"];
 
 export function TokenSelectorDialog({
   open,
@@ -47,7 +46,9 @@ export function TokenSelectorDialog({
         return acc;
       }, {} as Record<string, Token[]>);
     }
-    return selectedSymbol && TOKENS_BY_SYMBOL[selectedSymbol] ? { [selectedSymbol]: TOKENS_BY_SYMBOL[selectedSymbol] } : {};
+    return selectedSymbol && TOKENS_BY_SYMBOL[selectedSymbol]
+      ? { [selectedSymbol]: TOKENS_BY_SYMBOL[selectedSymbol] }
+      : {};
   }, [searchQuery, selectedSymbol]);
 
   return (
@@ -56,7 +57,7 @@ export function TokenSelectorDialog({
         <DialogHeader>
           <DialogTitle className="text-white">Select a token</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -70,7 +71,7 @@ export function TokenSelectorDialog({
               className="pl-9 bg-[#0e0e15] border-gray-800"
             />
           </div>
-          
+
           {!searchQuery && (
             <div className="flex flex-wrap gap-2">
               {QUICK_SELECT_TOKENS.map((symbol) => {
@@ -104,7 +105,7 @@ export function TokenSelectorDialog({
             </div>
           )}
         </div>
-        
+
         <div className="mt-4 max-h-[400px] overflow-y-auto space-y-4">
           {Object.entries(filteredTokenGroups).map(([symbol, tokens]) => (
             <div key={symbol} className="space-y-1">
@@ -121,7 +122,9 @@ export function TokenSelectorDialog({
                           className="rounded-full"
                         />
                       ) : (
-                        <span className="text-sm font-bold">{symbol.slice(0, 2)}</span>
+                        <span className="text-sm font-bold">
+                          {symbol.slice(0, 2)}
+                        </span>
                       )}
                     </div>
                     <div className="flex-1">
@@ -181,17 +184,23 @@ export function TokenSelectorDialog({
                           className="rounded-full"
                         />
                       ) : (
-                        <span className="text-sm font-bold">{tokens[0].symbol.slice(0, 2)}</span>
+                        <span className="text-sm font-bold">
+                          {tokens[0].symbol.slice(0, 2)}
+                        </span>
                       )}
                     </div>
                     <div className="text-left">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-white">{tokens[0].symbol}</span>
+                        <span className="font-medium text-white">
+                          {tokens[0].symbol}
+                        </span>
                         <span className="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded">
                           on {tokens[0].chain.name}
                         </span>
                       </div>
-                      <div className="text-sm text-gray-400">{tokens[0].name}</div>
+                      <div className="text-sm text-gray-400">
+                        {tokens[0].name}
+                      </div>
                     </div>
                   </div>
                   <div className="text-right text-sm text-muted-foreground">
