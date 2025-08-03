@@ -1,4 +1,4 @@
-import { Window as KeplrWindow } from "@keplr-wallet/types";
+import { Window as KeplrWindow, SignDoc } from "@keplr-wallet/types";
 
 declare global {
   interface Window extends KeplrWindow {
@@ -13,13 +13,6 @@ interface CosmosBalance {
 
 interface CosmosBalanceResponse {
   balances: CosmosBalance[];
-}
-
-interface SignDoc {
-  bodyBytes: Uint8Array;
-  authInfoBytes: Uint8Array;
-  chainId: string;
-  accountNumber: bigint;
 }
 
 interface CosmosTransaction {
