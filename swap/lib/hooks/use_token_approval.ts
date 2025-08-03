@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { parseUnits, type Address } from "viem";
 import { useToast } from "./use-toast";
+import { getEscrowFactoryAddress } from "@/lib/utils/escrow_factory";
 
 const ERC20_ABI = [
   {
@@ -28,14 +29,14 @@ const ERC20_ABI = [
 
 interface UseTokenApprovalParams {
   tokenAddress: Address | undefined;
-  spenderAddress: Address | undefined;
+  chainId: number;
   amount: string;
   decimals: number;
 }
 
 export function useTokenApproval({
   tokenAddress,
-  spenderAddress,
+  chainId,
   amount,
   decimals
 }: UseTokenApprovalParams) {
@@ -50,8 +51,19 @@ export function useTokenApproval({
   });
 
   const approve = useCallback(async () => {
-    if (!tokenAddress || !spenderAddress || !address || !amount) {
+    if (!tokenAddress || !address || !amount) {
       console.error("[TokenApproval] Missing required parameters");
+      return;
+    }
+
+    const spenderAddress = getEscrowFactoryAddress(chainId);
+    if (!spenderAddress) {
+      console.error("[TokenApproval] No escrow factory address configured for chain", chainId);
+      toast({
+        title: "Configuration Error",
+        description: "Escrow factory address not configured for this chain",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -63,13 +75,14 @@ export function useTokenApproval({
         token: tokenAddress,
         spender: spenderAddress,
         amount: amountInWei.toString(),
+        chainId,
       });
 
       writeContract({
         address: tokenAddress,
         abi: ERC20_ABI,
         functionName: "approve",
-        args: [spenderAddress, amountInWei],
+        args: [spenderAddress as Address, amountInWei],
       });
     } catch (error) {
       console.error("[TokenApproval] Error:", error);
@@ -80,7 +93,7 @@ export function useTokenApproval({
       });
       setIsApproving(false);
     }
-  }, [tokenAddress, spenderAddress, address, amount, decimals, writeContract, toast]);
+  }, [tokenAddress, chainId, address, amount, decimals, writeContract, toast]);
 
   // Reset approving state when transaction completes
   if (isSuccess && isApproving) {
