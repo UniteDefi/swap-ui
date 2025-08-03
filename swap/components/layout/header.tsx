@@ -9,14 +9,23 @@ import { BalanceDropdown } from "@/components/features/balance_dropdown";
 import { ShimmerLoader } from "@/components/ui/shimmer";
 import { useState } from "react";
 import { OrdersSheet } from "@/components/features/orders_sheet";
+import { OrderDetailsDialog } from "@/components/features/order_details_dialog";
 import { Receipt } from "lucide-react";
 import { WalletDropdown } from "@/components/features/wallet_dropdown";
+import { Order } from "@/lib/types/order";
 
 export function Header() {
   const { address, isConnected } = useAccount();
   const { balances, totalUsdValue, isLoading } = useMultiChainBalances();
   const [balanceDropdownOpen, setBalanceDropdownOpen] = useState(false);
   const [ordersSheetOpen, setOrdersSheetOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [orderDetailsOpen, setOrderDetailsOpen] = useState(false);
+
+  const handleOrderClick = (order: Order) => {
+    setSelectedOrder(order);
+    setOrderDetailsOpen(true);
+  };
   
   const formatUsdValue = (value: number) => {
     if (value < 0.01) return "<$0.01";
@@ -88,7 +97,17 @@ export function Header() {
         </div>
       </div>
       
-      <OrdersSheet open={ordersSheetOpen} onOpenChange={setOrdersSheetOpen} />
+      <OrdersSheet 
+        open={ordersSheetOpen} 
+        onOpenChange={setOrdersSheetOpen}
+        orders={[]} // TODO: Connect to real data
+        onOrderClick={handleOrderClick}
+      />
+      <OrderDetailsDialog
+        order={selectedOrder}
+        open={orderDetailsOpen}
+        onOpenChange={setOrderDetailsOpen}
+      />
     </header>
   );
 }
