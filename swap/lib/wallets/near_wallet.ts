@@ -1,12 +1,46 @@
 import { setupWalletSelector } from "@near-wallet-selector/core";
 import type { WalletSelector, Wallet } from "@near-wallet-selector/core";
 
+interface NearTransaction {
+  receiverId: string;
+  actions: Array<{
+    type: "FunctionCall" | "Transfer" | "AddKey" | "DeleteKey" | "DeleteAccount" | "CreateAccount" | "DeployContract" | "Stake";
+    params: Record<string, unknown>;
+  }>;
+}
+
+interface NearTransactionResult {
+  transaction: {
+    hash: string;
+    nonce: number;
+    public_key: string;
+    receiver_id: string;
+    signature: string;
+    signer_id: string;
+  };
+  transaction_outcome: {
+    id: string;
+    outcome: {
+      status: Record<string, unknown>;
+      gas_burnt: number;
+    };
+  };
+}
+
+interface NearBalanceResponse {
+  result: {
+    amount: string;
+    block_hash: string;
+    block_height: number;
+  };
+}
+
 export interface NearWalletInterface {
   connect: () => Promise<{ address: string; publicKey: string }>;
   disconnect: () => Promise<void>;
   isConnected: () => boolean;
   getBalance: () => Promise<{ amount: string; decimals: number }>;
-  signTransaction: (transaction: any) => Promise<any>;
+  signTransaction: (transaction: unknown) => Promise<NearTransactionResult>;
 }
 
 export class NearWalletManager implements NearWalletInterface {
@@ -27,7 +61,7 @@ export class NearWalletManager implements NearWalletInterface {
     return this.selector;
   }
   
-  async connect(walletId?: string): Promise<{ address: string; publicKey: string }> {
+  async connect(): Promise<{ address: string; publicKey: string }> {
     console.log("[NearWallet] Connecting to NEAR wallet...");
     
     try {
@@ -114,7 +148,7 @@ export class NearWalletManager implements NearWalletInterface {
         throw new Error("Failed to fetch balance");
       }
       
-      const data = await response.json();
+      const data: NearBalanceResponse = await response.json();
       const balance = data.result?.amount || "0";
       
       return {
@@ -130,7 +164,7 @@ export class NearWalletManager implements NearWalletInterface {
     }
   }
 
-  async signTransaction(transaction: any): Promise<any> {
+  async signTransaction(transaction: unknown): Promise<NearTransactionResult> {
     if (!this.wallet) {
       throw new Error("Wallet not connected");
     }
@@ -139,8 +173,8 @@ export class NearWalletManager implements NearWalletInterface {
     
     try {
       // Sign and send transaction
-      const result = await this.wallet.signAndSendTransaction(transaction);
-      return result;
+      const result = await this.wallet.signAndSendTransaction(transaction as Parameters<Wallet['signAndSendTransaction']>[0]);
+      return result as NearTransactionResult;
     } catch (error) {
       console.error("[NearWallet] Transaction signing error:", error);
       throw error;
