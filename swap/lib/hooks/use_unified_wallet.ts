@@ -17,9 +17,9 @@ export function useUnifiedWallet(): UnifiedWallet {
   const { address: evmAddress, isConnected: evmConnected, chain } = useAccount();
   
   // Non-EVM wallet state
-  const { wallet: nonEvmWallet, isConnected: nonEvmConnected, disconnect: nonEvmDisconnect } = useNonEvmWallet();
+  const { wallets: nonEvmWallets, isConnected: nonEvmConnected, disconnect: nonEvmDisconnect } = useNonEvmWallet();
   
-  // Determine which wallet is connected
+  // Determine which wallet is connected (prefer EVM, then first non-EVM)
   if (evmConnected && evmAddress) {
     return {
       address: evmAddress,
@@ -34,14 +34,15 @@ export function useUnifiedWallet(): UnifiedWallet {
     };
   }
   
-  if (nonEvmConnected && nonEvmWallet) {
+  if (nonEvmConnected && nonEvmWallets.length > 0) {
+    const primaryNonEvmWallet = nonEvmWallets[0];
     return {
-      address: nonEvmWallet.address,
+      address: primaryNonEvmWallet.address,
       isConnected: true,
       walletType: "non-evm",
-      chainId: nonEvmWallet.chain.id,
-      chainName: nonEvmWallet.chain.name,
-      disconnect: nonEvmDisconnect,
+      chainId: primaryNonEvmWallet.chain.id,
+      chainName: primaryNonEvmWallet.chain.name,
+      disconnect: () => nonEvmDisconnect(primaryNonEvmWallet.address),
     };
   }
   
