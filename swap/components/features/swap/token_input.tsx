@@ -43,7 +43,6 @@ export function TokenInput({
   selectedToken,
   onSelectToken,
   readOnly = false,
-  balance,
   usdValue,
 }: TokenInputProps) {
   const { address } = useAccount();
