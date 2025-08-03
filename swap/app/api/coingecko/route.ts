@@ -106,7 +106,12 @@ export async function POST(request: NextRequest) {
         name: token.name,
       };
       return acc;
-    }, {} as Record<string, any>);
+    }, {} as Record<string, {
+      usd: number;
+      usd_24h_change: number;
+      symbol: string;
+      name: string;
+    }>);
 
     return NextResponse.json(pricesMap);
   } catch (error) {
