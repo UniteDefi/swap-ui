@@ -53,7 +53,7 @@ export function useTokenPrices(tokenIds: string[]) {
     const interval = setInterval(fetchPrices, 30000);
     
     return () => clearInterval(interval);
-  }, [tokenIdsString, tokenIds]);
+  }, [tokenIdsString]);
 
   return { prices, loading, error };
 }
