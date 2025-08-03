@@ -4,12 +4,30 @@ interface AptosAccount {
   publicKey?: string;
 }
 
+interface AptosTransaction {
+  type: string;
+  function: string;
+  type_arguments: string[];
+  arguments: unknown[];
+}
+
+interface AptosTransactionResponse {
+  hash: string;
+  sender: string;
+  sequence_number: string;
+  max_gas_amount: string;
+  gas_unit_price: string;
+  gas_used: string;
+  success: boolean;
+}
+
 interface PetraWallet {
   connect: () => Promise<{ address: string; publicKey: string }>;
   disconnect: () => Promise<void>;
   isConnected: () => boolean;
   account: () => Promise<AptosAccount>;
-  signAndSubmitTransaction: (transaction: any) => Promise<any>;
+  getAccount: () => Promise<AptosAccount>;
+  signAndSubmitTransaction: (transaction: AptosTransaction) => Promise<AptosTransactionResponse>;
 }
 
 interface MartianWallet {
@@ -17,7 +35,13 @@ interface MartianWallet {
   disconnect: () => Promise<void>;
   isConnected: () => boolean;
   account: () => Promise<AptosAccount>;
-  signAndSubmitTransaction: (transaction: any) => Promise<any>;
+  getAccount: () => Promise<AptosAccount>;
+  signAndSubmitTransaction: (transaction: AptosTransaction) => Promise<AptosTransactionResponse>;
+}
+
+interface WindowWithAptos extends Window {
+  aptos?: PetraWallet;
+  martian?: MartianWallet;
 }
 
 export interface AptosWalletInterface {
@@ -25,46 +49,50 @@ export interface AptosWalletInterface {
   disconnect: () => Promise<void>;
   isConnected: () => boolean;
   getBalance: () => Promise<{ amount: string; decimals: number }>;
-  signTransaction: (transaction: any) => Promise<any>;
+  signTransaction: (transaction: AptosTransaction) => Promise<AptosTransactionResponse>;
   wallet: PetraWallet | MartianWallet | null;
 }
 
 export class AptosWalletManager implements AptosWalletInterface {
   wallet: PetraWallet | MartianWallet | null = null;
   
-  async connect(walletName?: string): Promise<{ address: string; publicKey: string }> {
+  async connect(): Promise<{ address: string; publicKey: string }> {
     console.log("[AptosWallet] Connecting to Aptos wallet...");
     
     try {
       // Try Petra wallet first if available
-      if (typeof window !== "undefined" && (window as any).aptos) {
-        const petra = (window as any).aptos;
+      if (typeof window !== "undefined" && (window as WindowWithAptos).aptos) {
+        const petra = (window as WindowWithAptos).aptos;
         
-        // Connect to Petra
-        const response = await petra.connect();
-        
-        if (response) {
-          this.wallet = petra;
-          return {
-            address: response.address,
-            publicKey: response.publicKey,
-          };
+        if (petra) {
+          // Connect to Petra
+          const response = await petra.connect();
+          
+          if (response) {
+            this.wallet = petra;
+            return {
+              address: response.address,
+              publicKey: response.publicKey,
+            };
+          }
         }
       }
       
       // Try Martian wallet
-      if (typeof window !== "undefined" && (window as any).martian) {
-        const martian = (window as any).martian;
+      if (typeof window !== "undefined" && (window as WindowWithAptos).martian) {
+        const martian = (window as WindowWithAptos).martian;
         
-        // Connect to Martian
-        const response = await martian.connect();
-        
-        if (response) {
-          this.wallet = martian;
-          return {
-            address: response.address,
-            publicKey: response.publicKey,
-          };
+        if (martian) {
+          // Connect to Martian
+          const response = await martian.connect();
+          
+          if (response) {
+            this.wallet = martian;
+            return {
+              address: response.address,
+              publicKey: response.publicKey,
+            };
+          }
         }
       }
       
@@ -96,13 +124,15 @@ export class AptosWalletManager implements AptosWalletInterface {
       // Get account from wallet
       let address: string;
       
-      if ((this.wallet as any).account) {
-        const account = await (this.wallet as any).account();
+      if ('account' in this.wallet && this.wallet.account) {
+        const account = await this.wallet.account();
+        address = account.address;
+      } else if ('getAccount' in this.wallet && this.wallet.getAccount) {
+        // For Petra wallet, use getAccount
+        const account = await this.wallet.getAccount();
         address = account.address;
       } else {
-        // For Petra wallet, use getAccount
-        const account = await (this.wallet as any).getAccount();
-        address = account.address;
+        throw new Error("Unable to get account from wallet");
       }
       
       // Fetch balance from Aptos testnet
@@ -130,7 +160,7 @@ export class AptosWalletManager implements AptosWalletInterface {
     }
   }
 
-  async signTransaction(transaction: any): Promise<any> {
+  async signTransaction(transaction: AptosTransaction): Promise<AptosTransactionResponse> {
     if (!this.wallet) {
       throw new Error("Wallet not connected");
     }
@@ -138,7 +168,7 @@ export class AptosWalletManager implements AptosWalletInterface {
     console.log("[AptosWallet] Signing transaction:", transaction);
     
     try {
-      const pendingTransaction = await (this.wallet as any).signAndSubmitTransaction(transaction);
+      const pendingTransaction = await this.wallet.signAndSubmitTransaction(transaction);
       return pendingTransaction;
     } catch (error) {
       console.error("[AptosWallet] Transaction signing error:", error);
@@ -152,7 +182,7 @@ export const detectAptosWallets = () => {
   const wallets = [];
   
   // Check for Petra wallet
-  if (typeof window !== "undefined" && (window as any).aptos) {
+  if (typeof window !== "undefined" && (window as WindowWithAptos).aptos) {
     wallets.push({
       name: "Petra",
       icon: "/logos/aptos.png",
@@ -161,7 +191,7 @@ export const detectAptosWallets = () => {
   }
   
   // Check for Martian wallet
-  if (typeof window !== "undefined" && (window as any).martian) {
+  if (typeof window !== "undefined" && (window as WindowWithAptos).martian) {
     wallets.push({
       name: "Martian",
       icon: "/logos/aptos.png",
