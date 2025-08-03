@@ -2,109 +2,62 @@
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Check, Clock, X } from "lucide-react";
+import { Check, Clock, X, AlertTriangle, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Order, OrderStatus } from "@/lib/types/order";
 
-interface Order {
-  id: string;
-  fromToken: string;
-  toToken: string;
-  fromAmount: string;
-  toAmount: string;
-  fromChain: string;
-  toChain: string;
-  status: "completed" | "pending" | "failed";
-  timestamp: string;
-  txHash?: string;
-}
 
 interface OrdersSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  orders?: Order[];
+  onOrderClick?: (order: Order) => void;
 }
 
-const mockOrders: Order[] = [
-  {
-    id: "1",
-    fromToken: "ETH",
-    toToken: "USDT",
-    fromAmount: "1.5",
-    toAmount: "2,850.00",
-    fromChain: "Ethereum Sepolia",
-    toChain: "Polygon Amoy",
-    status: "completed",
-    timestamp: "2024-01-30 14:32",
-    txHash: "0x1234...5678",
-  },
-  {
-    id: "2",
-    fromToken: "USDT",
-    toToken: "DAI",
-    fromAmount: "500.00",
-    toAmount: "499.75",
-    fromChain: "Base Sepolia",
-    toChain: "Arbitrum Sepolia",
-    status: "pending",
-    timestamp: "2024-01-30 14:28",
-  },
-  {
-    id: "3",
-    fromToken: "BNB",
-    toToken: "USDT",
-    fromAmount: "2.0",
-    toAmount: "600.00",
-    fromChain: "BNB Testnet",
-    toChain: "Ethereum Sepolia",
-    status: "failed",
-    timestamp: "2024-01-30 14:15",
-  },
-  {
-    id: "4",
-    fromToken: "MATIC",
-    toToken: "DAI",
-    fromAmount: "1,000",
-    toAmount: "850.00",
-    fromChain: "Polygon Amoy",
-    toChain: "Base Sepolia",
-    status: "completed",
-    timestamp: "2024-01-30 13:45",
-    txHash: "0xabcd...efgh",
-  },
-  {
-    id: "5",
-    fromToken: "ETH",
-    toToken: "USDT",
-    fromAmount: "0.5",
-    toAmount: "950.00",
-    fromChain: "Arbitrum Sepolia",
-    toChain: "BNB Testnet",
-    status: "completed",
-    timestamp: "2024-01-30 12:30",
-    txHash: "0x9876...5432",
-  },
-];
 
-export function OrdersSheet({ open, onOpenChange }: OrdersSheetProps) {
-  const getStatusIcon = (status: Order["status"]) => {
+export function OrdersSheet({ open, onOpenChange, orders = [], onOrderClick }: OrdersSheetProps) {
+  const getStatusIcon = (status: OrderStatus) => {
     switch (status) {
       case "completed":
         return <Check className="h-4 w-4" />;
-      case "pending":
+      case "committed":
+        return <Loader2 className="h-4 w-4 animate-spin" />;
+      case "in_auction":
         return <Clock className="h-4 w-4" />;
+      case "rescue_available":
+        return <AlertTriangle className="h-4 w-4" />;
       case "failed":
         return <X className="h-4 w-4" />;
+      default:
+        return <Clock className="h-4 w-4" />;
     }
   };
 
-  const getStatusColor = (status: Order["status"]) => {
+  const getStatusColor = (status: OrderStatus) => {
     switch (status) {
       case "completed":
         return "bg-green-500/10 text-green-500 hover:bg-green-500/20";
-      case "pending":
+      case "committed":
+        return "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20";
+      case "in_auction":
         return "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20";
+      case "rescue_available":
+        return "bg-orange-500/10 text-orange-500 hover:bg-orange-500/20";
       case "failed":
         return "bg-red-500/10 text-red-500 hover:bg-red-500/20";
+      default:
+        return "bg-gray-500/10 text-gray-500 hover:bg-gray-500/20";
     }
+  };
+
+  const formatTimestamp = (timestamp?: number) => {
+    if (!timestamp) return "--";
+    return new Date(timestamp * 1000).toLocaleString();
+  };
+
+  const truncateHash = (hash?: string) => {
+    if (!hash) return "--";
+    return `${hash.slice(0, 6)}...${hash.slice(-4)}`;
   };
 
   return (
@@ -114,61 +67,89 @@ export function OrdersSheet({ open, onOpenChange }: OrdersSheetProps) {
           <SheetTitle className="text-xl font-bold text-white">Your Orders</SheetTitle>
         </SheetHeader>
         
-        <ScrollArea className="h-[calc(100vh-100px)] mt-6">
-          <div className="space-y-3 pr-4">
-            {mockOrders.map((order) => (
-              <div
-                key={order.id}
-                className="bg-gray-900/50 rounded-xl p-4 border border-gray-800 hover:border-gray-700 transition-colors"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <Badge 
-                    variant="secondary" 
-                    className={`${getStatusColor(order.status)} border-0`}
-                  >
-                    <span className="flex items-center gap-1">
-                      {getStatusIcon(order.status)}
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                    </span>
-                  </Badge>
-                  <span className="text-xs text-gray-400">{order.timestamp}</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-semibold text-white">
-                        {order.fromAmount} {order.fromToken}
-                      </span>
-                    </div>
-                    <span className="text-xs text-gray-400">{order.fromChain}</span>
-                  </div>
-
-                  <ArrowRight className="h-5 w-5 text-gray-600 mx-3" />
-
-                  <div className="flex-1 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <span className="text-lg font-semibold text-white">
-                        {order.toAmount} {order.toToken}
-                      </span>
-                    </div>
-                    <span className="text-xs text-gray-400">{order.toChain}</span>
-                  </div>
-                </div>
-
-                {order.txHash && (
-                  <div className="mt-3 pt-3 border-t border-gray-800">
-                    <a
-                      href={`#`}
-                      className="text-xs text-purple-400 hover:text-purple-300 transition-colors"
+        <ScrollArea className="h-[calc(100vh-120px)] mt-6">
+          {orders.length === 0 ? (
+            <div className="flex items-center justify-center h-32 text-gray-400">
+              No orders found
+            </div>
+          ) : (
+            <div className="overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-800">
+                    <th className="text-left py-3 px-2 text-gray-400 font-medium">Trade ID</th>
+                    <th className="text-left py-3 px-2 text-gray-400 font-medium">From</th>
+                    <th className="text-left py-3 px-2 text-gray-400 font-medium">To</th>
+                    <th className="text-left py-3 px-2 text-gray-400 font-medium">Status</th>
+                    <th className="text-left py-3 px-2 text-gray-400 font-medium">Resolver</th>
+                    <th className="text-left py-3 px-2 text-gray-400 font-medium">Maker</th>
+                    <th className="text-left py-3 px-2 text-gray-400 font-medium">Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map((order) => (
+                    <tr
+                      key={order.tradeId}
+                      className="border-b border-gray-800/50 hover:bg-muted/50 cursor-pointer transition-colors"
+                      onClick={() => onOrderClick?.(order)}
                     >
-                      View Transaction: {order.txHash}
-                    </a>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+                      <td className="py-3 px-2">
+                        <span className="text-purple-400 font-mono text-xs">
+                          {truncateHash(order.tradeId)}
+                        </span>
+                      </td>
+                      <td className="py-3 px-2">
+                        <div className="flex flex-col">
+                          <span className="text-white font-medium">
+                            {order.srcAmount || "--"} {order.fromToken || "--"}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            {order.fromChain || "--"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-2">
+                        <div className="flex flex-col">
+                          <span className="text-white font-medium">
+                            {order.toAmount || "--"} {order.toToken || "--"}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            {order.toChain || "--"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-2">
+                        <Badge 
+                          variant="secondary" 
+                          className={`${getStatusColor(order.status || "in_auction")} border-0`}
+                        >
+                          <span className="flex items-center gap-1">
+                            {getStatusIcon(order.status || "in_auction")}
+                            {order.status?.replace("_", " ") || "In Auction"}
+                          </span>
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-2">
+                        <span className="text-gray-300 font-mono text-xs">
+                          {truncateHash(order.resolver)}
+                        </span>
+                      </td>
+                      <td className="py-3 px-2">
+                        <span className="text-gray-300 font-mono text-xs">
+                          {truncateHash(order.maker)}
+                        </span>
+                      </td>
+                      <td className="py-3 px-2">
+                        <span className="text-gray-400 text-xs">
+                          {formatTimestamp(order.initiateTimestamp)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </ScrollArea>
       </SheetContent>
     </Sheet>
