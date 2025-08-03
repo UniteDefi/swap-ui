@@ -53,7 +53,7 @@ export async function signHTLCOrder(
     orderDuration: number;
   },
   verifyingContract: string
-): Promise<{ signature: string; typedData: any; orderId: string }> {
+): Promise<{ signature: string; typedData: unknown; orderId: string }> {
   // Create HTLCOrder
   const htlcOrder: HTLCOrder = {
     ...swapRequest,
