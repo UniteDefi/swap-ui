@@ -79,19 +79,6 @@ export const nonEvmChains: NonEvmChain[] = [
     testnet: true,
   },
   {
-    id: "injective-testnet-cosmos",
-    name: "Injective Testnet (Cosmos)",
-    network: "injective-testnet-cosmos",
-    nativeCurrency: {
-      name: "Injective",
-      symbol: "INJ",
-      decimals: 18,
-    },
-    blockExplorer: "https://testnet.explorer.injective.network",
-    walletType: "cosmos",
-    testnet: true,
-  },
-  {
     id: "secret-testnet",
     name: "Secret Network Testnet",
     network: "secret-testnet",
@@ -176,7 +163,7 @@ export const nonEvmWalletTypes = [
   { id: "sui", name: "Sui Wallets", chains: ["sui-testnet"] },
   { id: "cardano", name: "Cardano Wallets", chains: ["cardano-testnet"] },
   { id: "stellar", name: "Stellar Wallets", chains: ["stellar-testnet"] },
-  { id: "cosmos", name: "Cosmos Wallets", chains: ["osmosis-testnet", "injective-testnet-cosmos", "secret-testnet"] },
+  { id: "cosmos", name: "Cosmos Wallets", chains: ["osmosis-testnet", "secret-testnet"] },
   { id: "xrpl", name: "XRPL Wallets", chains: ["xrpl-testnet"] },
   { id: "ton", name: "TON Wallets", chains: ["ton-testnet"] },
   { id: "near", name: "NEAR Wallets", chains: ["near-testnet"] },
