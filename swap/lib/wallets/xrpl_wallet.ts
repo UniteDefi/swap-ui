@@ -1,11 +1,55 @@
 import { Client, dropsToXrp } from "xrpl";
 
+interface XrplTransaction {
+  TransactionType: string;
+  Account: string;
+  Fee: string;
+  Sequence?: number;
+  LastLedgerSequence?: number;
+  [key: string]: unknown;
+}
+
+interface XrplAccountInfo {
+  result: {
+    account_data: {
+      Balance: string;
+      Account: string;
+      Sequence: number;
+    };
+    ledger_index: number;
+  };
+}
+
+interface XrplSignedTransaction {
+  id: string;
+  signedTransaction: string;
+}
+
+interface XummWallet {
+  payload: {
+    createAndSubscribe: (transaction: XrplTransaction) => Promise<{ account?: string }>;
+  };
+}
+
+interface GemWallet {
+  request: (params: {
+    method: string;
+    params: unknown;
+  }) => Promise<{ result?: { account?: string } }>;
+}
+
+interface WindowWithXrpl extends Window {
+  xumm?: XummWallet;
+  gemWallet?: GemWallet;
+  crossmark?: unknown;
+}
+
 export interface XrplWalletInterface {
   connect: () => Promise<{ address: string; publicKey: string }>;
   disconnect: () => Promise<void>;
   isConnected: () => boolean;
   getBalance: () => Promise<{ amount: string; decimals: number }>;
-  signTransaction: (transaction: any) => Promise<any>;
+  signTransaction: (transaction: XrplTransaction) => Promise<XrplSignedTransaction>;
 }
 
 export class XrplWalletManager implements XrplWalletInterface {
@@ -30,47 +74,53 @@ export class XrplWalletManager implements XrplWalletInterface {
       }
       
       // Try Xumm wallet first
-      if ((window as any).xumm) {
-        const xumm = (window as any).xumm;
+      if ((window as WindowWithXrpl).xumm) {
+        const xumm = (window as WindowWithXrpl).xumm;
         
-        // Request connection
-        const account = await xumm.payload.createAndSubscribe({
-          TransactionType: "SignIn"
-        });
-        
-        if (account?.account) {
-          this.address = account.account;
-          this.publicKey = account.account; // XRPL uses account address
+        if (xumm) {
+          // Request connection with a simplified sign-in transaction
+          const account = await xumm.payload.createAndSubscribe({
+            TransactionType: "SignIn",
+            Account: "", // Will be filled by Xumm
+            Fee: "10"
+          });
           
-          return {
-            address: account.account,
-            publicKey: account.account,
-          };
+          if (account?.account) {
+            this.address = account.account;
+            this.publicKey = account.account; // XRPL uses account address
+            
+            return {
+              address: account.account,
+              publicKey: account.account,
+            };
+          }
         }
       }
       
       // Try GemWallet
-      if ((window as any).gemWallet) {
-        const gemWallet = (window as any).gemWallet;
+      if ((window as WindowWithXrpl).gemWallet) {
+        const gemWallet = (window as WindowWithXrpl).gemWallet;
         
-        // Request connection
-        const response = await gemWallet.request({
-          method: "wallet_requestPermissions",
-          params: [
-            {
-              networks: ["xrpl:testnet"]
-            }
-          ]
-        });
-        
-        if (response?.result?.account) {
-          this.address = response.result.account;
-          this.publicKey = response.result.account;
+        if (gemWallet) {
+          // Request connection
+          const response = await gemWallet.request({
+            method: "wallet_requestPermissions",
+            params: [
+              {
+                networks: ["xrpl:testnet"]
+              }
+            ]
+          });
           
-          return {
-            address: response.result.account,
-            publicKey: response.result.account,
-          };
+          if (response?.result?.account) {
+            this.address = response.result.account;
+            this.publicKey = response.result.account;
+            
+            return {
+              address: response.result.account,
+              publicKey: response.result.account,
+            };
+          }
         }
       }
       
@@ -111,7 +161,7 @@ export class XrplWalletManager implements XrplWalletInterface {
         command: "account_info",
         account: this.address,
         ledger_index: "validated"
-      });
+      }) as XrplAccountInfo;
       
       // Convert drops to XRP
       const balance = dropsToXrp(accountInfo.result.account_data.Balance.toString());
@@ -129,7 +179,7 @@ export class XrplWalletManager implements XrplWalletInterface {
     }
   }
 
-  async signTransaction(transaction: any): Promise<any> {
+  async signTransaction(transaction: XrplTransaction): Promise<XrplSignedTransaction> {
     if (!this.address) {
       throw new Error("Wallet not connected");
     }
@@ -138,25 +188,35 @@ export class XrplWalletManager implements XrplWalletInterface {
     
     try {
       // Try Xumm wallet signing
-      if ((window as any).xumm) {
-        const xumm = (window as any).xumm;
+      if ((window as WindowWithXrpl).xumm) {
+        const xumm = (window as WindowWithXrpl).xumm;
         
-        const payload = await xumm.payload.createAndSubscribe(transaction);
-        return payload;
+        if (xumm) {
+          const payload = await xumm.payload.createAndSubscribe(transaction);
+          return {
+            id: "xumm-transaction",
+            signedTransaction: JSON.stringify(payload)
+          };
+        }
       }
       
       // Try GemWallet signing
-      if ((window as any).gemWallet) {
-        const gemWallet = (window as any).gemWallet;
+      if ((window as WindowWithXrpl).gemWallet) {
+        const gemWallet = (window as WindowWithXrpl).gemWallet;
         
-        const response = await gemWallet.request({
-          method: "xrpl_signTransaction",
-          params: {
-            transaction: transaction
-          }
-        });
-        
-        return response.result;
+        if (gemWallet) {
+          const response = await gemWallet.request({
+            method: "xrpl_signTransaction",
+            params: {
+              transaction: transaction
+            }
+          });
+          
+          return {
+            id: "gemwallet-transaction",
+            signedTransaction: JSON.stringify(response.result)
+          };
+        }
       }
       
       throw new Error("No wallet available for signing");
@@ -171,18 +231,20 @@ export class XrplWalletManager implements XrplWalletInterface {
     
     if (typeof window === "undefined") return wallets;
     
+    const windowWithXrpl = window as WindowWithXrpl;
+    
     // Check for Xumm wallet
-    if ((window as any).xumm) {
+    if (windowWithXrpl.xumm) {
       wallets.push("xumm");
     }
     
     // Check for GemWallet
-    if ((window as any).gemWallet) {
+    if (windowWithXrpl.gemWallet) {
       wallets.push("gemWallet");
     }
     
     // Check for Crossmark wallet
-    if ((window as any).crossmark) {
+    if (windowWithXrpl.crossmark) {
       wallets.push("crossmark");
     }
     
@@ -196,8 +258,10 @@ export const detectXrplWallets = (): Array<{name: string; icon: string; adapter:
   
   if (typeof window === "undefined") return wallets;
   
+  const windowWithXrpl = window as WindowWithXrpl;
+  
   // Check for Xumm wallet
-  if ((window as any).xumm) {
+  if (windowWithXrpl.xumm) {
     wallets.push({
       name: "Xumm",
       icon: "/logos/xrp.png",
@@ -206,7 +270,7 @@ export const detectXrplWallets = (): Array<{name: string; icon: string; adapter:
   }
   
   // Check for GemWallet
-  if ((window as any).gemWallet) {
+  if (windowWithXrpl.gemWallet) {
     wallets.push({
       name: "GemWallet",
       icon: "/logos/xrp.png",
@@ -215,7 +279,7 @@ export const detectXrplWallets = (): Array<{name: string; icon: string; adapter:
   }
   
   // Check for Crossmark wallet
-  if ((window as any).crossmark) {
+  if (windowWithXrpl.crossmark) {
     wallets.push({
       name: "Crossmark",
       icon: "/logos/xrp.png",
