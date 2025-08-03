@@ -1,15 +1,37 @@
-import { useCardano } from "@cardano-foundation/cardano-connect-with-wallet";
+interface CardanoWalletApi {
+  enable: () => Promise<CardanoWalletApi>;
+  getUsedAddresses: () => Promise<string[]>;
+  getUnusedAddresses: () => Promise<string[]>;
+  getBalance: () => Promise<string>;
+  signTx: (transaction: string) => Promise<string>;
+}
+
+interface CardanoWalletProvider {
+  enable: () => Promise<CardanoWalletApi>;
+  name: string;
+  icon: string;
+}
+
+interface WindowWithCardano extends Window {
+  cardano?: {
+    nami?: CardanoWalletProvider;
+    eternl?: CardanoWalletProvider;
+    flint?: CardanoWalletProvider;
+    yoroi?: CardanoWalletProvider;
+    typhoncip30?: CardanoWalletProvider;
+  };
+}
 
 export interface CardanoWalletInterface {
   connect: () => Promise<{ address: string; publicKey: string }>;
   disconnect: () => Promise<void>;
   isConnected: () => boolean;
   getBalance: () => Promise<{ amount: string; decimals: number }>;
-  signTransaction: (transaction: any) => Promise<any>;
+  signTransaction: (transaction: string) => Promise<string>;
 }
 
 export class CardanoWalletManager implements CardanoWalletInterface {
-  private walletApi: any = null;
+  private walletApi: CardanoWalletApi | null = null;
   private address: string | null = null;
   
   async connect(): Promise<{ address: string; publicKey: string }> {
@@ -87,7 +109,7 @@ export class CardanoWalletManager implements CardanoWalletInterface {
     }
   }
 
-  async signTransaction(transaction: any): Promise<any> {
+  async signTransaction(transaction: string): Promise<string> {
     if (!this.walletApi) {
       throw new Error("Wallet not connected");
     }
@@ -104,34 +126,36 @@ export class CardanoWalletManager implements CardanoWalletInterface {
     }
   }
   
-  private getAvailableWallets(): any[] {
-    const wallets: any[] = [];
+  private getAvailableWallets(): CardanoWalletProvider[] {
+    const wallets: CardanoWalletProvider[] = [];
     
     if (typeof window === "undefined") return wallets;
     
+    const cardanoWindow = window as WindowWithCardano;
+    
     // Check for Nami wallet
-    if ((window as any).cardano?.nami) {
-      wallets.push((window as any).cardano.nami);
+    if (cardanoWindow.cardano?.nami) {
+      wallets.push(cardanoWindow.cardano.nami);
     }
     
     // Check for Eternl wallet
-    if ((window as any).cardano?.eternl) {
-      wallets.push((window as any).cardano.eternl);
+    if (cardanoWindow.cardano?.eternl) {
+      wallets.push(cardanoWindow.cardano.eternl);
     }
     
     // Check for Flint wallet
-    if ((window as any).cardano?.flint) {
-      wallets.push((window as any).cardano.flint);
+    if (cardanoWindow.cardano?.flint) {
+      wallets.push(cardanoWindow.cardano.flint);
     }
     
     // Check for Yoroi wallet
-    if ((window as any).cardano?.yoroi) {
-      wallets.push((window as any).cardano.yoroi);
+    if (cardanoWindow.cardano?.yoroi) {
+      wallets.push(cardanoWindow.cardano.yoroi);
     }
     
     // Check for Typhon wallet
-    if ((window as any).cardano?.typhoncip30) {
-      wallets.push((window as any).cardano.typhoncip30);
+    if (cardanoWindow.cardano?.typhoncip30) {
+      wallets.push(cardanoWindow.cardano.typhoncip30);
     }
     
     return wallets;
@@ -144,8 +168,10 @@ export const detectCardanoWallets = (): Array<{name: string; icon: string; adapt
   
   if (typeof window === "undefined") return wallets;
   
+  const cardanoWindow = window as WindowWithCardano;
+  
   // Check for Nami wallet
-  if ((window as any).cardano?.nami) {
+  if (cardanoWindow.cardano?.nami) {
     wallets.push({
       name: "Nami",
       icon: "/logos/cardano.png",
@@ -154,7 +180,7 @@ export const detectCardanoWallets = (): Array<{name: string; icon: string; adapt
   }
   
   // Check for Eternl wallet
-  if ((window as any).cardano?.eternl) {
+  if (cardanoWindow.cardano?.eternl) {
     wallets.push({
       name: "Eternl",
       icon: "/logos/cardano.png",
@@ -163,7 +189,7 @@ export const detectCardanoWallets = (): Array<{name: string; icon: string; adapt
   }
   
   // Check for Flint wallet
-  if ((window as any).cardano?.flint) {
+  if (cardanoWindow.cardano?.flint) {
     wallets.push({
       name: "Flint",
       icon: "/logos/cardano.png",
@@ -172,7 +198,7 @@ export const detectCardanoWallets = (): Array<{name: string; icon: string; adapt
   }
   
   // Check for Yoroi wallet
-  if ((window as any).cardano?.yoroi) {
+  if (cardanoWindow.cardano?.yoroi) {
     wallets.push({
       name: "Yoroi",
       icon: "/logos/cardano.png",
