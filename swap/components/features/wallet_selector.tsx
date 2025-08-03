@@ -1,17 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { nonEvmWalletTypes, nonEvmChains } from "@/lib/config/non_evm_chains";
+import { nonEvmChains } from "@/lib/config/non_evm_chains";
 import { useAppKit } from "@reown/appkit/react";
 import { chainLogos } from "@/lib/config/chain_logos";
 import Image from "next/image";
 import { useNonEvmWallet } from "@/lib/context/non_evm_wallet_context";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Search, CheckCircle } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface WalletSelectorProps {
   open: boolean;
@@ -22,17 +25,39 @@ export function WalletSelector({ open, onOpenChange }: WalletSelectorProps) {
   const [selectedWalletType, setSelectedWalletType] = useState<"evm" | "non-evm" | null>(null);
   const [selectedNonEvmWallet, setSelectedNonEvmWallet] = useState<string | null>(null);
   const [selectedChainId, setSelectedChainId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [connectionSuccess, setConnectionSuccess] = useState(false);
   const { open: openAppKit } = useAppKit();
-  const { connect: connectNonEvmWallet, isConnecting } = useNonEvmWallet();
+  const { connect: connectNonEvmWallet, isConnecting, wallets: nonEvmWallets } = useNonEvmWallet();
+  
+  // Reset states when dialog opens
+  const resetStates = () => {
+    setSelectedWalletType(null);
+    setSelectedNonEvmWallet(null);
+    setSelectedChainId(null);
+    setSearchQuery("");
+    setConnectionSuccess(false);
+  };
+  
+  // Reset when dialog opens
+  useEffect(() => {
+    if (open && !connectionSuccess) {
+      resetStates();
+    }
+  }, [open, connectionSuccess]);
 
   const handleEvmWalletConnect = () => {
-    onOpenChange(false);
     openAppKit();
+    // Keep dialog open to show connection status
   };
 
-  const handleNonEvmWalletSelect = (walletType: string) => {
-    console.log("[WalletSelector] Selected non-EVM wallet type:", walletType);
-    setSelectedNonEvmWallet(walletType);
+  const handleNonEvmChainSelect = (chainId: string) => {
+    console.log("[WalletSelector] Selected non-EVM chain:", chainId);
+    const chain = nonEvmChains.find(c => c.id === chainId);
+    if (chain) {
+      setSelectedChainId(chainId);
+      setSelectedNonEvmWallet(chain.walletType);
+    }
   };
   
   const handleNonEvmConnect = async () => {
@@ -43,19 +68,29 @@ export function WalletSelector({ open, onOpenChange }: WalletSelectorProps) {
     
     try {
       await connectNonEvmWallet(selectedNonEvmWallet, selectedChainId);
-      onOpenChange(false);
+      setConnectionSuccess(true);
+      // Keep dialog open to allow connecting more wallets
     } catch (error) {
       console.error("[WalletSelector] Error connecting wallet:", error);
     }
   };
   
+  const filteredChains = nonEvmChains.filter(chain => 
+    chain.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    chain.nativeCurrency.symbol.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
   const handleBack = () => {
-    if (selectedNonEvmWallet) {
-      setSelectedNonEvmWallet(null);
-      setSelectedChainId(null);
-    } else {
-      setSelectedWalletType(null);
-    }
+    resetStates();
+  };
+  
+  const handleForceReset = () => {
+    resetStates();
+  };
+
+  // Check if a non-EVM chain is already connected
+  const isChainConnected = (chainId: string) => {
+    return nonEvmWallets.some(w => w.chain.id === chainId);
   };
 
   return (
@@ -64,7 +99,10 @@ export function WalletSelector({ open, onOpenChange }: WalletSelectorProps) {
         <DialogHeader>
           <DialogTitle>Connect Wallet</DialogTitle>
           <DialogDescription>
-            Choose your wallet type to connect to UniteDefi
+            {connectionSuccess 
+              ? "Successfully connected! You can connect more wallets or close this dialog."
+              : "Choose your wallet type to connect to UniteDefi"
+            }
           </DialogDescription>
         </DialogHeader>
         
@@ -132,104 +170,64 @@ export function WalletSelector({ open, onOpenChange }: WalletSelectorProps) {
               </div>
             )}
             
-            {selectedWalletType === "non-evm" && !selectedNonEvmWallet && (
+            {selectedWalletType === "non-evm" && (
               <div className="space-y-4">
-                <div className="grid gap-2">
-                  {nonEvmWalletTypes.map((walletType) => {
-                    const chains = walletType.chains.map(chainId => 
-                      nonEvmChains.find(c => c.id === chainId)
-                    ).filter(Boolean);
-                    
-                    return (
-                      <Button
-                        key={walletType.id}
-                        variant="outline"
-                        className="justify-start h-auto py-3"
-                        onClick={() => handleNonEvmWalletSelect(walletType.id)}
-                      >
-                        <div className="flex items-center gap-3 w-full">
-                          <div className="flex -space-x-2">
-                            {chains.slice(0, 3).map((chain, idx) => chain && (
-                              <div key={chain.id} className="relative w-8 h-8">
-                                <Image
-                                  src={chainLogos[chain.id] || "/logos/ethereum.png"}
-                                  alt={chain.name}
-                                  width={32}
-                                  height={32}
-                                  className="rounded-full border-2 border-background"
-                                  style={{ zIndex: 3 - idx }}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                          <div className="text-left">
-                            <div className="font-medium">{walletType.name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {chains.map(c => c?.name).join(", ")}
-                            </div>
-                          </div>
-                        </div>
-                      </Button>
-                    );
-                  })}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    type="text"
+                    placeholder="Search chains..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={handleBack}
-                >
-                  Back
-                </Button>
-              </div>
-            )}
-            
-            {selectedWalletType === "non-evm" && selectedNonEvmWallet && (
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-sm font-medium mb-3 block">Select Chain</Label>
+                
+                <ScrollArea className="h-[400px] pr-4">
                   <RadioGroup
                     value={selectedChainId || ""}
-                    onValueChange={setSelectedChainId}
+                    onValueChange={handleNonEvmChainSelect}
                     className="grid gap-2"
                   >
-                    {nonEvmWalletTypes
-                      .find(w => w.id === selectedNonEvmWallet)
-                      ?.chains.map(chainId => {
-                        const chain = nonEvmChains.find(c => c.id === chainId);
-                        if (!chain) return null;
-                        
-                        return (
-                          <div key={chain.id} className="relative">
-                            <RadioGroupItem
-                              value={chain.id}
-                              id={chain.id}
-                              className="peer sr-only"
-                            />
-                            <Label
-                              htmlFor={chain.id}
-                              className="flex items-center gap-3 rounded-md border-2 p-3 cursor-pointer transition-all
-                                border-gray-800 hover:border-purple-800 
-                                peer-data-[state=checked]:border-purple-500 peer-data-[state=checked]:bg-purple-950/20"
-                            >
-                              <Image
-                                src={chainLogos[chain.id] || "/logos/ethereum.png"}
-                                alt={chain.name}
-                                width={32}
-                                height={32}
-                                className="rounded-full"
-                              />
-                              <div>
-                                <div className="font-medium">{chain.name}</div>
-                                <div className="text-xs text-muted-foreground">
-                                  {chain.nativeCurrency.symbol}
-                                </div>
-                              </div>
-                            </Label>
+                    {filteredChains.map((chain) => (
+                      <div key={chain.id} className="relative">
+                        <RadioGroupItem
+                          value={chain.id}
+                          id={chain.id}
+                          className="peer sr-only"
+                        />
+                        <Label
+                          htmlFor={chain.id}
+                          className={`flex items-center gap-3 rounded-md border-2 p-3 cursor-pointer transition-all
+                            ${isChainConnected(chain.id) 
+                              ? "border-green-800 bg-green-950/20" 
+                              : "border-gray-800 hover:border-purple-800 peer-data-[state=checked]:border-purple-500 peer-data-[state=checked]:bg-purple-950/20"
+                            }`}
+                        >
+                          <Image
+                            src={chainLogos[chain.id] || "/logos/ethereum.png"}
+                            alt={chain.name}
+                            width={32}
+                            height={32}
+                            className="rounded-full"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{chain.name}</span>
+                              {isChainConnected(chain.id) && (
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                              )}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {chain.nativeCurrency.symbol} • {chain.walletType}
+                              {isChainConnected(chain.id) && " • Connected"}
+                            </div>
                           </div>
-                        );
-                      })}
+                        </Label>
+                      </div>
+                    ))}
                   </RadioGroup>
-                </div>
+                </ScrollArea>
                 
                 <div className="flex gap-2">
                   <Button 
@@ -246,7 +244,27 @@ export function WalletSelector({ open, onOpenChange }: WalletSelectorProps) {
                   >
                     {isConnecting ? "Connecting..." : "Connect"}
                   </Button>
+                  {connectionSuccess && (
+                    <Button
+                      variant="outline"
+                      onClick={() => onOpenChange(false)}
+                    >
+                      Done
+                    </Button>
+                  )}
                 </div>
+                
+                {connectionSuccess && (
+                  <div className="mt-4">
+                    <Button
+                      variant="ghost"
+                      className="w-full"
+                      onClick={handleForceReset}
+                    >
+                      Connect Another Wallet
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </TabsContent>
