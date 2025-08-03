@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingDown } from "lucide-react";
+// import { TrendingDown } from "lucide-react"; // Unused import
 import { DutchAuctionTimer } from "./dutch_auction_timer";
 import { CrossChainIcon } from "@/components/ui/cross-chain-icon";
 import {
@@ -18,7 +18,6 @@ interface PriceInfoProps {
   isDutchAuction?: boolean;
   auctionEndTime?: number;
   slippage?: number;
-  fromAmount?: number;
   toAmount?: number;
   fromTokenPrice?: number;
   toTokenPrice?: number;
@@ -32,7 +31,6 @@ export function PriceInfo({
   isDutchAuction = false,
   auctionEndTime = Date.now() + 300000, // 5 minutes from now
   slippage = 0.5,
-  fromAmount = 0,
   toAmount = 0,
   fromTokenPrice = 0,
   toTokenPrice = 0,
@@ -43,9 +41,9 @@ export function PriceInfo({
   }
 
   const minimumReceived = toAmount * (1 - slippage / 100);
-  const priceImpact = 0.2; // Would be calculated from liquidity pool data
-  const usdValueFrom = fromAmount * fromTokenPrice;
-  const usdValueTo = toAmount * toTokenPrice;
+  // const priceImpact = 0.2; // Would be calculated from liquidity pool data
+  // const usdValueFrom = fromAmount * fromTokenPrice;
+  // const usdValueTo = toAmount * toTokenPrice;
   const exchangeRateUSD = fromTokenPrice; // USD value of 1 fromToken
 
   return (
