@@ -4,7 +4,7 @@
 
 ### 1. **Multi-Chain Support**
 - **15 EVM Chains** configured with proper RPC URLs and chain IDs
-- **12 Non-EVM Chains** configured with metadata
+- **7 Non-EVM Chains** configured with metadata
 
 ### 2. **Chain Logos**
 - All chains display their respective logos in the UI
@@ -25,9 +25,11 @@
 - Base implementations for:
   - **Aptos** - Petra, Martian wallets
   - **Sui** - Sui Wallet, Ethos
-  - **TON** - Tonkeeper, OpenMask
+  - **Stellar** - Freighter, Albedo
   - **Starknet** - Argent X, Braavos
-  - **NEAR** - NEAR Wallet, Sender
+  - **Osmosis** - Keplr, Leap
+  - **XRPL** - Xumm, GemWallet
+  - **ICP** - Internet Identity, Plug
 - Unified wallet context for state management
 - Extensible architecture for adding more wallets
 
@@ -44,9 +46,11 @@
 /lib/wallets/
   - aptos_wallet.ts
   - sui_wallet.ts
-  - ton_wallet.ts
+  - stellar_wallet.ts
   - starknet_wallet.ts
-  - near_wallet.ts
+  - cosmos_wallet.ts
+  - xrpl_wallet.ts
+  - icp_wallet.ts
 
 /lib/context/
   - non_evm_wallet_context.tsx (Non-EVM wallet state)
@@ -74,12 +78,10 @@ For each non-EVM chain, you need to:
 - Replace mock implementations with real wallet methods
 - Test with actual wallet extensions
 
-### 2. Add Missing Wallets
-- **Cardano**: Use `@cardano-foundation/cardano-connect-with-wallet`
-- **Stellar**: Use `@stellar/freighter-api`
-- **Cosmos**: Use `@keplr-wallet/types`
-- **XRPL**: Use `xrpl` SDK
-- **Polkadot**: Use `@polkadot/extension-dapp`
+### 2. Complete Wallet Implementations
+- Complete the actual wallet SDK integrations for each supported chain
+- Replace mock implementations with real wallet methods
+- Add proper error handling and validation
 
 ### 3. Testing
 - Install wallet browser extensions
