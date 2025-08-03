@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 interface TokenPriceData {
   usd: number;
@@ -11,6 +11,8 @@ export function useTokenPrices(tokenIds: string[]) {
   const [prices, setPrices] = useState<Record<string, TokenPriceData>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const tokenIdsString = useMemo(() => tokenIds.join(","), [tokenIds]);
 
   useEffect(() => {
     if (!tokenIds || tokenIds.length === 0) {
@@ -51,7 +53,7 @@ export function useTokenPrices(tokenIds: string[]) {
     const interval = setInterval(fetchPrices, 30000);
     
     return () => clearInterval(interval);
-  }, [tokenIds.join(",")]);
+  }, [tokenIdsString, tokenIds]);
 
   return { prices, loading, error };
 }
