@@ -1,7 +1,8 @@
 import { Token, Chain } from "@/components/features/swap/token_input";
-import deployments from "./deployments.json";
+import { hasDeployments, getContractAddress } from "@/lib/utils/deployment_filter";
 
-export const CHAINS: Record<number | string, Chain> = {
+// All available chains
+const ALL_CHAINS: Record<number | string, Chain> = {
   // EVM Chains
   11155111: { id: 11155111, name: "Ethereum Sepolia", shortName: "ETH", logo: "/logos/ethereum.png" },
   84532: { id: 84532, name: "Base Sepolia", shortName: "BASE", logo: "/logos/base.png" },
@@ -17,72 +18,76 @@ export const CHAINS: Record<number | string, Chain> = {
   1313161555: { id: 1313161555, name: "Aurora Testnet", shortName: "AURORA", logo: "/logos/aurora.png" },
   11111: { id: 11111, name: "Injective Testnet", shortName: "INJ", logo: "/logos/injective.png" },
   128123: { id: 128123, name: "Etherlink Testnet", shortName: "XTZ", logo: "/logos/etherlink.png" },
-  41454: { id: 41454, name: "Monad Testnet", shortName: "MON", logo: "/logos/monad.png" },
+  10143: { id: 10143, name: "Monad Testnet", shortName: "MON", logo: "/logos/monad.png" },
   // Non-EVM Chains
   "aptos-testnet": { id: "aptos-testnet", name: "Aptos Testnet", shortName: "APT", logo: "/logos/aptos.png" },
   "sui-testnet": { id: "sui-testnet", name: "Sui Testnet", shortName: "SUI", logo: "/logos/sui.png" },
-  "cardano-testnet": { id: "cardano-testnet", name: "Cardano Testnet", shortName: "ADA", logo: "/logos/cardano.png" },
   "stellar-testnet": { id: "stellar-testnet", name: "Stellar Testnet", shortName: "XLM", logo: "/logos/stellar.png" },
-  "osmosis-testnet": { id: "osmosis-testnet", name: "Osmosis Testnet", shortName: "OSMO", logo: "/logos/osmosis.png" },
-  "secret-testnet": { id: "secret-testnet", name: "Secret Network Testnet", shortName: "SCRT", logo: "/logos/secret.png" },
+  "osmosis-testnet": { id: "osmosis-testnet", name: "Osmosis", shortName: "OSMO", logo: "/logos/osmosis.png" },
   "xrpl-testnet": { id: "xrpl-testnet", name: "XRPL Testnet", shortName: "XRP", logo: "/logos/xrpl.png" },
-  "ton-testnet": { id: "ton-testnet", name: "TON Testnet", shortName: "TON", logo: "/logos/ton.png" },
-  "near-testnet": { id: "near-testnet", name: "NEAR Testnet", shortName: "NEAR", logo: "/logos/near.png" },
-  "polkadot-testnet": { id: "polkadot-testnet", name: "Polkadot Testnet", shortName: "DOT", logo: "/logos/polkadot.png" },
   "starknet-testnet": { id: "starknet-testnet", name: "Starknet Testnet", shortName: "STRK", logo: "/logos/starknet.png" },
+  "icp": { id: "icp", name: "ICP", shortName: "ICP", logo: "/logos/icp.png" },
 };
+
+// Only export chains that have deployments
+export const CHAINS: Record<number | string, Chain> = Object.fromEntries(
+  Object.entries(ALL_CHAINS).filter(([chainId]) => hasDeployments(chainId))
+);
 
 // Helper function to get token addresses from deployments
 function getTokenAddress(chainId: string | number, tokenType: "usdt" | "dai" | "wrapped"): string {
-  const deployment = deployments[chainId as keyof typeof deployments];
-  if (!deployment) return "";
-  
   switch (tokenType) {
     case "usdt":
-      return deployment.mockUsdtAddress || "";
+      return getContractAddress(chainId, "mockUsdt") || "";
     case "dai":
-      return deployment.mockDaiAddress || "";
+      return getContractAddress(chainId, "mockDai") || "";
     case "wrapped":
-      return deployment.mockWrappedNativeAddress || "";
+      return getContractAddress(chainId, "mockWrappedNative") || "";
     default:
       return "";
   }
 }
 
-// Generate USDT and DAI tokens for all supported chains
+// Generate USDT and DAI tokens for all deployed chains
 function generateTokensForAllChains(): Token[] {
   const tokens: Token[] = [];
   
-  // Get all chain IDs from CHAINS
+  // Get all chain IDs from CHAINS (which already filters for deployed chains)
   const chainIds = Object.keys(CHAINS);
   
   for (const chainId of chainIds) {
     const chain = CHAINS[chainId];
     const numericChainId = typeof chainId === "string" && isNaN(Number(chainId)) ? chainId : Number(chainId);
     
-    // Add USDT for this chain
-    tokens.push({
-      symbol: "USDT",
-      name: "Tether USD",
-      address: getTokenAddress(chainId, "usdt") || "0x0000000000000000000000000000000000000000",
-      decimals: 6,
-      coingeckoId: "tether",
-      logoURI: "/logos/usdt.png",
-      chainId: numericChainId,
-      chain: chain,
-    });
+    // Only add USDT if the chain has USDT deployment
+    const usdtAddress = getTokenAddress(chainId, "usdt");
+    if (usdtAddress) {
+      tokens.push({
+        symbol: "USDT",
+        name: "Tether USD",
+        address: usdtAddress,
+        decimals: 6,
+        coingeckoId: "tether",
+        logoURI: "/logos/usdt.png",
+        chainId: numericChainId,
+        chain: chain,
+      });
+    }
     
-    // Add DAI for this chain
-    tokens.push({
-      symbol: "DAI",
-      name: "Dai Stablecoin",
-      address: getTokenAddress(chainId, "dai") || "0x0000000000000000000000000000000000000000",
-      decimals: 18,
-      coingeckoId: "dai",
-      logoURI: "/logos/dai.png",
-      chainId: numericChainId,
-      chain: chain,
-    });
+    // Only add DAI if the chain has DAI deployment
+    const daiAddress = getTokenAddress(chainId, "dai");
+    if (daiAddress) {
+      tokens.push({
+        symbol: "DAI",
+        name: "Dai Stablecoin",
+        address: daiAddress,
+        decimals: 18,
+        coingeckoId: "dai",
+        logoURI: "/logos/dai.png",
+        chainId: numericChainId,
+        chain: chain,
+      });
+    }
   }
   
   return tokens;
