@@ -1,12 +1,34 @@
 import * as freighter from "@stellar/freighter-api";
 import { Horizon, Networks } from "@stellar/stellar-sdk";
 
+interface StellarBalance {
+  asset_type: string;
+  balance: string;
+  asset_code?: string;
+  asset_issuer?: string;
+}
+
+interface StellarTransaction {
+  toXDR: () => string;
+}
+
+interface StellarSignedTransaction {
+  signedXDR: string;
+}
+
+interface WindowWithAlbedo extends Window {
+  albedo?: {
+    publicKey: (options: { token?: string }) => Promise<{ pubkey: string }>;
+    tx: (options: { xdr: string; network?: string }) => Promise<{ signed_envelope_xdr: string }>;
+  };
+}
+
 export interface StellarWalletInterface {
   connect: () => Promise<{ address: string; publicKey: string }>;
   disconnect: () => Promise<void>;
   isConnected: () => boolean;
   getBalance: () => Promise<{ amount: string; decimals: number }>;
-  signTransaction: (transaction: any) => Promise<any>;
+  signTransaction: (transaction: StellarTransaction) => Promise<StellarSignedTransaction>;
 }
 
 export class StellarWalletManager implements StellarWalletInterface {
@@ -23,18 +45,21 @@ export class StellarWalletManager implements StellarWalletInterface {
     
     try {
       // Check if Freighter is available
-      const freighterConnected = await freighter.isConnected();
+      const isAllowed = await freighter.isAllowed();
       
-      if (!freighterConnected) {
+      if (!isAllowed) {
         // Request access to Freighter
-        await freighter.requestAccess();
+        const accessResult = await freighter.requestAccess();
+        if (!accessResult) {
+          throw new Error("Freighter access denied");
+        }
       }
       
-      // Get the public key
-      const publicKey = await (freighter as any).getPublicKey();
+      // Get the public key using the correct method  
+      const publicKey = await (freighter as unknown as { getPublicKey: () => Promise<string> }).getPublicKey();
       
       if (!publicKey) {
-        throw new Error("Failed to get public key from wallet");
+        throw new Error("Failed to get public key from Freighter wallet");
       }
       
       this.publicKey = publicKey;
@@ -45,6 +70,13 @@ export class StellarWalletManager implements StellarWalletInterface {
       };
     } catch (error) {
       console.error("[StellarWallet] Connection error:", error);
+      
+      // Check if Freighter is not installed
+      if (error instanceof Error && error.message.includes("not found")) {
+        const { createWalletNotFoundError } = await import("@/lib/utils/wallet_errors");
+        throw createWalletNotFoundError("Stellar", ["freighter"]);
+      }
+      
       throw error;
     }
   }
@@ -69,7 +101,7 @@ export class StellarWalletManager implements StellarWalletInterface {
       
       // Find XLM balance
       const xlmBalance = account.balances.find(
-        (balance: any) => balance.asset_type === "native"
+        (balance: StellarBalance) => balance.asset_type === "native"
       );
       
       const amount = xlmBalance ? xlmBalance.balance : "0";
@@ -88,7 +120,7 @@ export class StellarWalletManager implements StellarWalletInterface {
     }
   }
 
-  async signTransaction(transaction: any): Promise<any> {
+  async signTransaction(transaction: StellarTransaction): Promise<StellarSignedTransaction> {
     if (!this.publicKey) {
       throw new Error("Wallet not connected");
     }
@@ -105,7 +137,7 @@ export class StellarWalletManager implements StellarWalletInterface {
         }
       );
       
-      return signedTransaction;
+      return { signedXDR: signedTransaction.signedTxXdr };
     } catch (error) {
       console.error("[StellarWallet] Transaction signing error:", error);
       throw error;
@@ -127,13 +159,13 @@ export const detectStellarWallets = () => {
         icon: "/logos/stellar.png",
         adapter: "freighter",
       });
-    } catch (error) {
+    } catch {
       // Freighter not available
     }
   }
   
   // Check for Albedo wallet (web-based)
-  if (typeof window !== "undefined" && (window as any).albedo) {
+  if (typeof window !== "undefined" && (window as WindowWithAlbedo).albedo) {
     wallets.push({
       name: "Albedo",
       icon: "/logos/stellar.png",
