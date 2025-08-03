@@ -5,6 +5,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useAccount, useSwitchChain } from "wagmi";
 import { useState } from "react";
 import { Lock } from "lucide-react";
+import Image from "next/image";
 import { supportedChains } from "@/lib/config/chains";
 import { nonEvmChains } from "@/lib/config/non_evm_chains";
 import { chainLogos, chainNames } from "@/lib/config/chain_logos";
@@ -35,14 +36,14 @@ const allChains = [
 export function ChainSelector() {
   const { chain } = useAccount();
   const { switchChain } = useSwitchChain();
-  const { wallet: nonEvmWallet } = useNonEvmWallet();
+  const { wallets: nonEvmWallets } = useNonEvmWallet();
   const { walletType } = useUnifiedWallet();
   
   const [selectedChainId, setSelectedChainId] = useState(() => {
     if (walletType === "evm" && chain?.id) {
       return chain.id.toString();
-    } else if (walletType === "non-evm" && nonEvmWallet?.chain.id) {
-      return nonEvmWallet.chain.id;
+    } else if (walletType === "non-evm" && nonEvmWallets[0]?.chain.id) {
+      return nonEvmWallets[0].chain.id;
     }
     return "11155111"; // Default to Ethereum
   });
@@ -90,10 +91,12 @@ export function ChainSelector() {
                 }`}
               >
                 <div className="relative">
-                  <img 
+                  <Image 
                     src={chain.logo} 
                     alt={chain.name} 
-                    className="w-8 h-8 mb-1 object-contain"
+                    width={32}
+                    height={32}
+                    className="mb-1 object-contain"
                   />
                   {isDisabled && (
                     <div className="absolute inset-0 flex items-center justify-center">
