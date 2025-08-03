@@ -37,37 +37,25 @@ Non-EVM wallets require individual SDK integrations. Here's the implementation a
 - **SDK**: `@mysten/wallet-kit`
 - **Wallets**: Sui Wallet, Ethos, Martian
 
-### 3. Cardano
-- **SDK**: `@cardano-foundation/cardano-connect-with-wallet`
-- **Wallets**: Nami, Eternl, Yoroi
-
-### 4. Stellar
+### 3. Stellar
 - **SDK**: `@stellar/freighter-api`
 - **Wallets**: Freighter, Albedo
 
-### 5. Cosmos Ecosystem (Osmosis, Injective, Secret)
+### 4. Cosmos Ecosystem (Osmosis)
 - **SDK**: `@keplr-wallet/types`
 - **Wallets**: Keplr, Leap
 
-### 6. XRPL
+### 5. XRPL
 - **SDK**: `xrpl`
 - **Wallets**: Xumm, GemWallet
 
-### 7. TON
-- **SDK**: `@tonconnect/ui-react`
-- **Wallets**: Tonkeeper, OpenMask
-
-### 8. NEAR
-- **SDK**: `@near-wallet-selector/core`
-- **Wallets**: NEAR Wallet, Sender
-
-### 9. Polkadot
-- **SDK**: `@polkadot/extension-dapp`
-- **Wallets**: Polkadot.js, Talisman, SubWallet
-
-### 10. Starknet
+### 6. Starknet
 - **SDK**: `starknetkit`
 - **Wallets**: Argent X, Braavos
+
+### 7. ICP
+- **SDK**: `@dfinity/agent`
+- **Wallets**: Internet Identity, Plug
 
 ## Implementation Steps
 
